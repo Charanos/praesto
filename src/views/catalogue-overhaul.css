@@ -1695,9 +1695,9 @@ dialog.catalogue-product-dialog:not([open]) {
 }
 .catalogue-product-dialog::backdrop,
 .catalogue-filter-workspace::backdrop {
-  background: #11131645;
-  backdrop-filter: blur(3px);
+  background: rgba(17, 19, 22, .42);
   -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
 }
 @media (max-width: 760px) {
   .catalogue-workspace > .catalogue-shell {

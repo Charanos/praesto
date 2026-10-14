@@ -19,9 +19,9 @@ dialog.product-reader:not([open]) {
   display: none;
 }
 .product-reader::backdrop {
-  background: #11131645;
-  backdrop-filter: blur(3px);
+  background: rgba(17, 19, 22, .42);
   -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
 }
 .product-reader-head {
   position: relative;
