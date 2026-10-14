@@ -6,25 +6,25 @@
  * finding gets sent to someone else.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { loadStore, loadListings } from './lib/store.js';
-import { EMPTY, encodeFilters, decodeFilters, runFilter } from './lib/filters.js';
-import { Icon, compact, n1, fmtDate } from './components/ui.jsx';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { buildCsv } from './lib/export.js';
+import { loadStore } from './lib/store.js';
+import { encodeFilters, decodeFilters } from './lib/filters.js';
+import { Icon, fmtDate } from './components/ui.jsx';
 import Overview from './views/Overview.jsx';
 import Catalogue from './views/Catalogue.jsx';
 import Sources from './views/Sources.jsx';
 import Quality from './views/Quality.jsx';
-
-const NAV = [
-  { id: 'overview', label: 'Overview', icon: 'pulse' },
-  { id: 'catalogue', label: 'Catalogue', icon: 'grid' },
-  { id: 'sources', label: 'Sources', icon: 'layers' },
-  { id: 'quality', label: 'Data quality', icon: 'shield' },
-];
+import './workspace.css';
+import './console.css';
+import { ConsoleSidebar, ConsoleTopbar, destinations as NAV } from './components/ConsoleShell.tsx';
+import OfflineNotice from './components/OfflineNotice.tsx';
+const DesignSystem = import.meta.env.DEV ? lazy(() => import('./views/DesignSystem.tsx')) : null;
+const DevAudit = import.meta.env.DEV ? lazy(() => import('./components/DevAudit.tsx')) : null;
 
 function readUrl() {
   const p = new URLSearchParams(window.location.search);
-  return { view: p.get('v') || 'overview', filters: decodeFilters(p) };
+  return { view: [...NAV.map(n => n.id), ...(import.meta.env.DEV ? ['design'] : [])].includes(p.get('v')) ? p.get('v') : 'overview', filters: decodeFilters(p), audit: import.meta.env.DEV && p.has('audit') };
 }
 
 export default function App() {
@@ -35,22 +35,13 @@ export default function App() {
   const initial = useMemo(readUrl, []);
   const [view, setView] = useState(initial.view);
   const [filters, setFilters] = useState(initial.filters);
-  const [theme, setTheme] = useState(() => localStorage.getItem('kpad-theme') || 'light');
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    try { localStorage.setItem('kpad-theme', theme); } catch { /* private mode */ }
-  }, [theme]);
-
   useEffect(() => {
     let alive = true;
     loadStore((s) => alive && setProgress(s))
       .then((s) => {
         if (!alive) return;
         setStore(s);
-        // Per-listing detail is only needed once a drawer opens, so it loads
-        // in the background after the grid is already interactive.
-        loadListings(s).catch(() => { /* drawer retries on demand */ });
+
       })
       .catch((e) => alive && setError(e));
     return () => { alive = false; };
@@ -60,6 +51,7 @@ export default function App() {
   useEffect(() => {
     const p = encodeFilters(filters);
     if (view !== 'overview') p.set('v', view);
+    if (import.meta.env.DEV && initial.audit) p.set('audit', '1');
     const qs = p.toString();
     window.history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname);
   }, [filters, view]);
@@ -73,7 +65,7 @@ export default function App() {
   // "/" focuses search from anywhere, as in every serious data tool.
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === '/' && !/input|textarea/i.test(e.target.tagName)) {
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.isComposing && !/input|textarea|select/i.test(e.target.tagName) && !e.target.isContentEditable && !document.querySelector('dialog[open]')) {
         e.preventDefault();
         setView('catalogue');
         requestAnimationFrame(() => document.querySelector('[data-search] input')?.focus());
@@ -83,17 +75,17 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  useEffect(() => { document.title = `${NAV.find(n => n.id === view)?.label || 'Design system'} · Kenya Pharmacy Availability`; }, [view]);
+
   const navigate = useCallback((v) => setView(v), []);
 
   if (error) {
     return (
       <div className="empty" style={{ height: '100vh' }}>
         <Icon name="alert" size={22} />
-        <div className="h2">Could not load the read model</div>
-        <div className="tiny dim" style={{ maxWidth: 420 }}>{String(error.message || error)}</div>
-        <div className="tiny faint">
-          Run <code className="mono">npm run build &amp;&amp; npm run export:app</code> to regenerate it.
-        </div>
+        <div className="h2">The catalogue could not load</div>
+        <p className="sub">Check your connection, then try again.</p>
+        <button className="btn btn-primary" onClick={() => window.location.reload()}>Retry loading</button>
       </div>
     );
   }
@@ -102,81 +94,16 @@ export default function App() {
 
   const { meta } = store;
   const snapshotDate = fmtDate(meta.headline.snapshot_at, { day: '2-digit', month: 'short', year: 'numeric' });
+  const snapshot = { id: meta.run.snapshot_id, date: snapshotDate, inferred: meta.run.snapshot_at_inferred, contract: meta.contract_version, match: meta.run.match_algo_version };
 
   return (
     <div className="app">
-      <nav className="rail">
-        <div className="rail-head">
-          <div className="rail-mark">KP</div>
-          <div className="rail-word">
-            Kenya Pharmacy
-            <small>Availability intelligence</small>
-          </div>
-        </div>
+      <a className="skip-link" href="#workspace">Skip to workspace</a>
+      <ConsoleSidebar view={view} onNavigate={navigate} productCount={store.P.n} sourceCount={store.shops.length} snapshot={snapshot} />
 
-        <div className="rail-nav">
-          <div className="rail-label">Workspace</div>
-          {NAV.map((n) => (
-            <button key={n.id} className="rail-item" aria-current={view === n.id}
-              onClick={() => navigate(n.id)}>
-              <Icon name={n.icon} size={15} />
-              <span>{n.label}</span>
-              {n.id === 'catalogue' && <span className="tail">{compact(store.P.n)}</span>}
-              {n.id === 'sources' && <span className="tail">{store.shops.length}</span>}
-            </button>
-          ))}
-        </div>
-
-        <div className="rail-foot">
-          <div style={{ fontSize: 10, color: 'var(--rail-ink-dim)', lineHeight: 1.6 }}>
-            <div className="row" style={{ justifyContent: 'space-between' }}>
-              <span>Snapshot</span>
-              <span className="mono" style={{ color: 'var(--rail-ink)' }}>{meta.run.snapshot_id}</span>
-            </div>
-            <div className="row" style={{ justifyContent: 'space-between' }}>
-              <span>Contract</span>
-              <span className="mono">{meta.contract_version}</span>
-            </div>
-            <div className="row" style={{ justifyContent: 'space-between' }}>
-              <span>Match</span>
-              <span className="mono">{meta.run.match_algo_version}</span>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <div className="main">
-        <header className="topbar">
-          <div className="field" data-search style={{ width: 340 }}>
-            <Icon name="search" size={14} />
-            <input
-              value={filters.q}
-              onChange={(e) => { setFilters({ ...filters, q: e.target.value }); setView('catalogue'); }}
-              placeholder="Search products and ingredients…"
-            />
-            <kbd className="micro faint mono" style={{
-              border: '1px solid var(--line)', borderRadius: 3, padding: '0 4px',
-            }}>/</kbd>
-          </div>
-
-          <div className="row spacer" style={{ gap: 9 }}>
-            <span className="row tiny dim" title="Snapshot timestamp is inferred from source file mtime">
-              <i style={{
-                width: 6, height: 6, borderRadius: '50%',
-                background: 'var(--in)', display: 'block',
-              }} />
-              {snapshotDate}
-              {meta.run.snapshot_at_inferred && <span className="faint">inferred</span>}
-            </span>
-            <button className="btn btn-icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}>
-              <Icon name={theme === 'light' ? 'moon' : 'sun'} size={14} />
-            </button>
-            <button className="btn" onClick={() => exportCsv(store, filters)}>
-              <Icon name="download" size={13} /> Export
-            </button>
-          </div>
-        </header>
+      <main className="main" id="workspace" tabIndex={-1}>
+        <OfflineNotice />
+        <ConsoleTopbar view={view} query={filters.q} onSearch={(query) => { setFilters({ ...filters, q: query }); setView('catalogue'); }} onExport={() => exportCsv(store, filters)} snapshot={snapshot} />
 
         {view === 'catalogue' ? (
           <Catalogue store={store} filters={filters} setFilters={setFilters} />
@@ -185,9 +112,12 @@ export default function App() {
             {view === 'overview' && <Overview store={store} onNavigate={navigate} setFilters={setFilters} />}
             {view === 'sources' && <Sources store={store} onNavigate={navigate} setFilters={setFilters} />}
             {view === 'quality' && <Quality store={store} onNavigate={navigate} setFilters={setFilters} />}
+            {view === 'design' && DesignSystem && <Suspense fallback={<p>Loading component catalogue…</p>}><DesignSystem /></Suspense>}
+            <footer className="workspace-foot">Stock and prices reflect collected pharmacy listings. Confirm current availability and price with the pharmacy. <a href="/about.html" className="table-action">Data notes</a></footer>
           </div>
         )}
-      </div>
+      </main>
+      {DevAudit && new URLSearchParams(location.search).has('audit') && <Suspense fallback={null}><DevAudit /></Suspense>}
     </div>
   );
 }
@@ -197,10 +127,10 @@ export default function App() {
 function Loading({ progress }) {
   const pct = Math.round(progress.progress * 100);
   return (
-    <div className="empty" style={{ height: '100vh', gap: 14 }}>
-      <div className="rail-mark" style={{ width: 34, height: 34, fontSize: 12 }}>KP</div>
+    <div className="empty app-loading" role="status" aria-live="polite">
+      <div className="rail-mark" style={{ width: 34, height: 34, fontSize: 'var(--text-xs)' }}>KP</div>
       <div className="h3">Kenya Pharmacy Availability</div>
-      <div style={{ width: 200, height: 2, background: 'var(--line)', borderRadius: 2, overflow: 'hidden' }}>
+      <div role="progressbar" aria-label="Loading catalogue" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} style={{ width: 200, height: 2, background: 'var(--line)', borderRadius: 2, overflow: 'hidden' }}>
         <div style={{
           height: '100%', width: `${Math.max(6, pct)}%`, background: 'var(--accent)',
           transition: 'width .2s ease',
@@ -217,46 +147,11 @@ function Loading({ progress }) {
 
 /** Exports exactly what is on screen, filters included, as CSV. */
 function exportCsv(store, filters) {
-    const { P, D } = store;
-    const rows = runFilter(store, filters, { key: 'oos', dir: 'desc' }).rows;
-    const head = [
-      'product_key', 'name', 'type', 'is_clinical', 'form', 'pack', 'active_ingredient',
-      'pharmacies_listing', 'pharmacies_eligible', 'pharmacies_oos', 'pharmacies_in_stock',
-      'cluster_band', 'price_min', 'price_median', 'price_max',
-      'match_confidence', 'match_band', 'review_state', 'class_gap_reason',
-      ...store.shops.map((s) => s.pharmacy_id),
-    ];
-    const esc = (v) => {
-      const s = v == null ? '' : String(v);
-      return /[",\n]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
-    };
-    const lines = [head.join(',')];
-    for (const i of rows) {
-      const cells = [
-        P.key[i], P.name[i], D.type[P.type[i]], P.clinical[i] ? 'yes' : 'no',
-        P.form[i] >= 0 ? D.form[P.form[i]] : '', P.packSig[i],
-        P.ingredient[i] >= 0 ? D.ingredient[P.ingredient[i]] : '',
-        P.nListed[i], P.nEligible[i], P.nOos[i], P.nIn[i],
-        D.band[P.band[i]],
-        Number.isFinite(P.priceMin[i]) ? P.priceMin[i] : '',
-        Number.isFinite(P.priceMed[i]) ? P.priceMed[i] : '',
-        Number.isFinite(P.priceMax[i]) ? P.priceMax[i] : '',
-        P.matchConf[i].toFixed(3), D.matchBand[P.matchBand[i]],
-        D.review[P.review[i]], P.gap[i] >= 0 ? D.gap[P.gap[i]] : '',
-        ...store.shops.map((s) => {
-          const bit = 1 << s.bit;
-          if (!(P.listedMask[i] & bit)) return '';
-          if (P.oosMask[i] & bit) return 'out_of_stock';
-          if (P.inMask[i] & bit) return 'in_stock';
-          return 'not_published';
-        }),
-      ];
-      lines.push(cells.map(esc).join(','));
-    }
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+    const result = buildCsv(store, filters);
+    const blob = new Blob([result.text], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `kenya-pharmacy-${store.meta.run.snapshot_id}-${rows.length}-products.csv`;
+    a.download = `kenya-pharmacy-${store.meta.run.snapshot_id}-${result.count}-products.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
 }

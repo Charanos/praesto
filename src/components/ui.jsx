@@ -77,9 +77,9 @@ export function Tag({ tone = 'plain', children }) {
 export function Chip({ active, onClick, onClear, children }) {
   return (
     <span className={`chip${active ? ' chip-active' : ''}`}>
-      <button onClick={onClick} style={{ font: 'inherit', color: 'inherit' }}>{children}</button>
+      <span className="chip-label">{onClick ? <button onClick={onClick}>{children}</button> : children}</span>
       {onClear && (
-        <button onClick={onClear} aria-label="Remove filter">
+        <button onClick={onClear} aria-label={`Remove ${children} filter`}>
           <Icon name="x" size={11} />
         </button>
       )}
@@ -91,7 +91,7 @@ export function Chip({ active, onClick, onClear, children }) {
 export function StateTag({ state }) {
   if (state === 'in_stock') return <Tag tone="in">in stock</Tag>;
   if (state === 'out_of_stock') return <Tag tone="out">out of stock</Tag>;
-  return <Tag tone="nosig">no signal</Tag>;
+  return <Tag tone="nosig">stock not reported</Tag>;
 }
 
 /** Per-source availability barcode, straight from the bitmasks. */
@@ -145,7 +145,7 @@ export function Check({ on, onChange, label, n }) {
     <label className="facet-opt" data-on={on}>
       <input type="checkbox" checked={on} onChange={onChange} aria-label={label}
         style={{
-          appearance: 'none', width: 13, height: 13, flexShrink: 0,
+          width: 16, height: 16, flexShrink: 0,
           border: `1px solid ${on ? 'var(--accent)' : 'var(--line-strong)'}`,
           background: on ? 'var(--accent)' : 'var(--surface)',
           borderRadius: 2, position: 'relative', cursor: 'pointer',
@@ -158,16 +158,16 @@ export function Check({ on, onChange, label, n }) {
 }
 
 /** Numeric min/max pair. Empty means unbounded, not zero. */
-export function RangePair({ min, max, onMin, onMax, placeholderMin = 'min', placeholderMax = 'max' }) {
+export function RangePair({ min, max, onMin, onMax, placeholderMin = 'min', placeholderMax = 'max', label = 'value' }) {
   return (
     <div className="range">
       <div className="field" style={{ height: 26 }}>
-        <input type="number" value={min ?? ''} placeholder={placeholderMin}
+        <input type="number" value={min ?? ''} aria-label={`Minimum ${label}`} placeholder={placeholderMin}
           onChange={(e) => onMin(e.target.value === '' ? null : Number(e.target.value))} />
       </div>
       <span className="faint tiny">–</span>
       <div className="field" style={{ height: 26 }}>
-        <input type="number" value={max ?? ''} placeholder={placeholderMax}
+        <input type="number" value={max ?? ''} aria-label={`Maximum ${label}`} placeholder={placeholderMax}
           onChange={(e) => onMax(e.target.value === '' ? null : Number(e.target.value))} />
       </div>
     </div>
@@ -277,6 +277,6 @@ export function useVirtual({ count, rowHeight, viewportRef, overscan = 12 }) {
   // the array and render nothing.
   return {
     start: Math.min(range.start, Math.max(0, count - 1)),
-    end: Math.min(range.end, count),
+    end: Math.max(Math.min(range.start, Math.max(0, count - 1)) + 1, Math.min(range.end, count)),
   };
 }

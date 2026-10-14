@@ -14,7 +14,6 @@
  * broken.
  */
 
-import { popcount } from './store.js';
 
 export const EMPTY = {
   q: '',
@@ -79,6 +78,7 @@ function predicates(store, f) {
       ? (i) => store.D.review[P.review[i]] === f.review : null,
     gaps: gapSet ? (i) => gapSet.has(P.gap[i]) : null,
     forms: formSet ? (i) => formSet.has(P.form[i]) : null,
+    packKinds: packSet ? (i) => packSet.has(P.packKind[i]) : null,
     shopsAny: anyMask ? (i) => (P.listedMask[i] & anyMask) !== 0 : null,
     shopsAll: allMask ? (i) => (P.listedMask[i] & allMask) === allMask : null,
     stockIn: inMask ? (i) => (P.inMask[i] & inMask) !== 0 : null,
@@ -250,15 +250,20 @@ export function activeChips(f, store) {
   for (const m of f.matchBands) add(`mb:${m}`, D ? `match: ${D.matchBand[m]}` : `${m}`, { matchBands: f.matchBands.filter((x) => x !== m) });
   for (const g of f.gaps) add(`gap:${g}`, D ? `gap: ${D.gap[g]}` : `${g}`, { gaps: f.gaps.filter((x) => x !== g) });
   for (const fo of f.forms) add(`form:${fo}`, D ? D.form[fo] : `${fo}`, { forms: f.forms.filter((x) => x !== fo) });
+  for (const pack of f.packKinds) add(`pack:${pack}`, D ? `pack: ${D.packKind[pack]}` : `pack ${pack}`, { packKinds: f.packKinds.filter(x => x !== pack) });
   for (const c of f.categories) add(`cat:${c}`, D ? D.category[c] : `${c}`, { categories: f.categories.filter((x) => x !== c) });
   for (const t of f.therapeutic) add(`tx:${t}`, D ? D.therapeutic[t] : `${t}`, { therapeutic: f.therapeutic.filter((x) => x !== t) });
-  if (f.review !== 'all') add('review', f.review === 'auto' ? 'Trusted' : 'Needs review', { review: 'all' });
-  if (f.monograph !== 'all') add('mono', f.monograph === 'with' ? 'Has monograph' : 'No monograph', { monograph: 'all' });
+  if (f.review !== 'all') add('review', f.review === 'auto' ? 'Automatic classification' : 'Needs review', { review: 'all' });
+  if (f.monograph !== 'all') add('mono', f.monograph === 'with' ? 'Reference-linked' : 'No reference link', { monograph: 'all' });
   if (f.contested) add('contested', 'Contested class', { contested: false });
   for (const s of f.shopsAny) add(`any:${s}`, `in ${store?.shops[s]?.name ?? s}`, { shopsAny: f.shopsAny.filter((x) => x !== s) });
   for (const s of f.shopsAll) add(`all:${s}`, `all of ${store?.shops[s]?.name ?? s}`, { shopsAll: f.shopsAll.filter((x) => x !== s) });
-  for (const s of f.stockIn) add(`in:${s}`, `in stock @ ${store?.shops[s]?.name ?? s}`, { stockIn: f.stockIn.filter((x) => x !== s) });
-  for (const s of f.stockOut) add(`out:${s}`, `out @ ${store?.shops[s]?.name ?? s}`, { stockOut: f.stockOut.filter((x) => x !== s) });
+  const reporting = store?.shops.filter(shop => shop.publishes_oos).map(shop => shop.bit);
+  const fullReporting = bits => reporting?.length && bits.length === reporting.length && reporting.every(bit => bits.includes(bit));
+  if (fullReporting(f.stockIn)) add('in:any', 'In stock somewhere', { stockIn: [] });
+  else for (const s of f.stockIn) add(`in:${s}`, `in stock @ ${store?.shops[s]?.name ?? s}`, { stockIn: f.stockIn.filter((x) => x !== s) });
+  if (fullReporting(f.stockOut)) add('out:any', 'Out of stock somewhere', { stockOut: [] });
+  else for (const s of f.stockOut) add(`out:${s}`, `out @ ${store?.shops[s]?.name ?? s}`, { stockOut: f.stockOut.filter((x) => x !== s) });
   if (f.listedMin || f.listedMax) add('listed', `listed ${f.listedMin || 0}–${f.listedMax || '∞'}`, { listedMin: 0, listedMax: 0 });
   if (f.oosMin || f.oosMax) add('oos', `OOS ${f.oosMin || 0}–${f.oosMax || '∞'}`, { oosMin: 0, oosMax: 0 });
   if (f.priceMin != null || f.priceMax != null) {

@@ -75,11 +75,16 @@ export default function Quality({ store, onNavigate, setFilters }) {
         <div className="eyebrow">Trust</div>
         <h1 className="h1">Data quality</h1>
         <p className="sub quality-lede">
-          What this snapshot does not know, stated plainly. The reference scrape is unfinished, so
-          classification is provisional and expected to improve rather than to be re-litigated.
+          Understand what the data can support before acting on it. Product matches and reference
+          coverage have limits; collection dates are inferred.
         </p>
       </header>
 
+      <section className="trust-guide" aria-label="How to interpret the evidence">
+        <div><span className="eyebrow">Stock</span><h2>A listing is not a guarantee.</h2><p>Only reporting sources contribute to the availability rate. Confirm current stock with the pharmacy.</p></div>
+        <div><span className="eyebrow">Matching</span><h2>Check strength, form and pack.</h2><p>Products are grouped from source listings. Match confidence describes that grouping, not clinical suitability.</p></div>
+        <div><span className="eyebrow">Reference</span><h2>Missing information stays unknown.</h2><p>The local reference is incomplete. A linked ingredient does not establish comprehensive or current clinical guidance.</p></div>
+      </section>
       <div className="stack quality-stack">
         {/* ------------------------------------------------- headline --- */}
         <section className="section quality-pulse">
@@ -102,10 +107,10 @@ export default function Quality({ store, onNavigate, setFilters }) {
           <div className="notice">
             <Icon name="alert" size={13} />
             <div>
-              <b>The DrugIndex scrape is still running.</b> {n0(cov.brands_rows)} brands and{' '}
-              {n0(cov.ingredients_rows)} active ingredients captured so far, across{' '}
-              {cov.distinct_scrape_days} collection days to {String(cov.latest_updated_at ?? '').slice(0, 10)}.
-              Every figure below measures linkage between records held — none is a percentage of an
+              <b>The local DrugIndex reference is incomplete.</b> {n0(cov.brands_rows)} brands and{' '}
+              {n0(cov.ingredients_rows)} ingredient records in the local export, across{' '}
+              {cov.distinct_scrape_days} record-date groups through {String(cov.latest_updated_at ?? '').slice(0, 10)}.
+              These record dates do not verify clinical revision dates. Every figure below measures linkage between records held — none is a percentage of an
               assumed total, which cannot be known from inside the data.
             </div>
           </div>
@@ -196,8 +201,8 @@ export default function Quality({ store, onNavigate, setFilters }) {
               </thead>
               <tbody>
                 {backlog.slice(0, QUEUE_ROWS).map((i) => (
-                  <tr key={P.key[i]} onClick={() => jump({ q: P.name[i] })}>
-                    <td className="cell-name">{P.name[i]}</td>
+                  <tr key={P.key[i]}>
+                    <td className="cell-name"><button className="table-action" onClick={() => jump({ q: P.name[i] })}>{P.name[i]}</button></td>
                     <td className="r num">{P.nListed[i]}</td>
                   </tr>
                 ))}
@@ -228,8 +233,8 @@ export default function Quality({ store, onNavigate, setFilters }) {
               </thead>
               <tbody>
                 {review.slice(0, QUEUE_ROWS).map((i) => (
-                  <tr key={P.key[i]} onClick={() => jump({ q: P.name[i] })}>
-                    <td className="cell-name">{P.name[i]}</td>
+                  <tr key={P.key[i]}>
+                    <td className="cell-name"><button className="table-action" onClick={() => jump({ q: P.name[i] })}>{P.name[i]}</button></td>
                     <td className="tiny">
                       {P.contested[i] ? <Tag tone="warn">class</Tag> : <Tag tone="plain">match</Tag>}
                     </td>
@@ -247,7 +252,7 @@ export default function Quality({ store, onNavigate, setFilters }) {
         <Section
           className="quality-quarantine"
           eyebrow="Excluded from network metrics"
-          title="Quarantined feeds"
+          title="Sources excluded from stock calculations"
           caption="A feed that never emits an out-of-stock value is not a source at full availability; it is a source that does not report. Counting it as positive evidence is what inflates the unfiltered rate."
         >
           <div className="quality-quarantine-list">

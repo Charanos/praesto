@@ -1,0 +1,66 @@
+[
+  {
+    "family": "Libertinus Serif",
+    "weight": "400",
+    "subset": "latin",
+    "file": "libertinusserif-400-latin.woff2",
+    "bytes": 23400,
+    "source": "https://fonts.gstatic.com/s/libertinusserif/v1/RLpkK4bw7KinajYBg0RTTwCLF5Ber64PUQ.woff2"
+  },
+  {
+    "family": "Libertinus Serif",
+    "weight": "600",
+    "subset": "latin",
+    "file": "libertinusserif-600-latin.woff2",
+    "bytes": 22872,
+    "source": "https://fonts.gstatic.com/s/libertinusserif/v1/RLpjK4bw7KinajYBg0RTTwCLF5Bep3ErRHzpCA.woff2"
+  },
+  {
+    "family": "Libertinus Serif",
+    "weight": "400",
+    "subset": "latin-ext",
+    "file": "libertinusserif-400-latin-ext.woff2",
+    "bytes": 64248,
+    "source": "https://fonts.gstatic.com/s/libertinusserif/v1/RLpkK4bw7KinajYBg0RTTwCLF5Ber6APUUPI.woff2"
+  },
+  {
+    "family": "Libertinus Serif",
+    "weight": "600",
+    "subset": "latin-ext",
+    "file": "libertinusserif-600-latin-ext.woff2",
+    "bytes": 62380,
+    "source": "https://fonts.gstatic.com/s/libertinusserif/v1/RLpjK4bw7KinajYBg0RTTwCLF5Bep3ErRHLpCJxR.woff2"
+  },
+  {
+    "family": "Nunito",
+    "weight": "400 700",
+    "subset": "latin",
+    "file": "nunito-variable-latin.woff2",
+    "bytes": 39128,
+    "source": "https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofINeaB.woff2"
+  },
+  {
+    "family": "Nunito",
+    "weight": "400 700",
+    "subset": "latin-ext",
+    "file": "nunito-variable-latin-ext.woff2",
+    "bytes": 35588,
+    "source": "https://fonts.gstatic.com/s/nunito/v32/XRXV3I6Li01BKofIO-aBXso.woff2"
+  },
+  {
+    "family": "JetBrains Mono",
+    "weight": "400 600",
+    "subset": "latin",
+    "file": "jetbrainsmono-variable-latin.woff2",
+    "bytes": 31432,
+    "source": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2"
+  },
+  {
+    "family": "JetBrains Mono",
+    "weight": "400 600",
+    "subset": "latin-ext",
+    "file": "jetbrainsmono-variable-latin-ext.woff2",
+    "bytes": 11624,
+    "source": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPx7cwhsk.woff2"
+  }
+]

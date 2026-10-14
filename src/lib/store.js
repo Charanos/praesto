@@ -47,7 +47,7 @@ const f64 = (a) => Float64Array.from(a, (v) => (v == null ? NaN : v));
 export function popcount(v) {
   v = v - ((v >> 1) & 0x5555);
   v = (v & 0x3333) + ((v >> 2) & 0x3333);
-  return (((v + (v >> 4)) & 0x0f0f) * 0x0101) >> 8;
+  return ((((v + (v >> 4)) & 0x0f0f) * 0x0101) >> 8) & 0xff;
 }
 
 export async function loadStore(onStage) {
@@ -144,8 +144,15 @@ export async function loadStore(onStage) {
 }
 
 /** Per-listing detail, loaded on demand for the drawer and the source screens. */
+const pendingListings = new WeakMap();
 export async function loadListings(store, onProgress) {
   if (store.listings) return store.listings;
+  if (pendingListings.has(store)) return pendingListings.get(store);
+  const pending = readListings(store, onProgress);
+  pendingListings.set(store, pending);
+  try { return await pending; } finally { pendingListings.delete(store); }
+}
+async function readListings(store, onProgress) {
   const raw = await getJson('listings', onProgress);
   const L = {
     count: raw.count,

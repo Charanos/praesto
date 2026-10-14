@@ -7,7 +7,7 @@
  * June and 75.9% in September.
  */
 
-import { useMemo, useState } from 'react';
+import { Fragment,  useMemo, useState } from 'react';
 import { runFilter, sourceBreakdown, EMPTY } from '../lib/filters.js';
 import { Section, Icon, Tag, n0, n1, compact } from '../components/ui.jsx';
 import { useTip, SourceBars } from '../components/charts.jsx';
@@ -51,7 +51,7 @@ export default function Sources({ store, onNavigate, setFilters }) {
       <section className="sources-status-strip" aria-label="Source reporting summary">
         <div><span>Captured</span><b className="num">{present.length}</b><small>catalogues</small></div>
         <div><span>Reporting</span><b className="num">{reporting.length}</b><small>stock states</small></div>
-        <div><span>Quarantined</span><b className="num">{present.length - reporting.length}</b><small>no usable signal</small></div>
+        <div><span>Listings only</span><b className="num">{present.length - reporting.length}</b><small>excluded from stock rate</small></div>
         <div><span>Absent</span><b className="num">{absent.length}</b><small>this snapshot</small></div>
       </section>
 
@@ -66,7 +66,7 @@ export default function Sources({ store, onNavigate, setFilters }) {
             onPick={(bit) => { setFilters({ ...EMPTY, shopsAny: [bit] }); onNavigate('catalogue'); }} />
         </Section>
 
-        <Section className="sources-roster" eyebrow="Signal quality" title="Reporting posture">
+        <Section className="sources-roster" eyebrow="Signal quality" title="What each source reports">
           <div className="sources-roster-list">
             {present.map((p) => (
               <div key={p.pharmacy_id} className="sources-roster-row">
@@ -83,7 +83,7 @@ export default function Sources({ store, onNavigate, setFilters }) {
         </Section>
       </div>
 
-      <Section className="sources-ledger" eyebrow="Detail" title="Source ledger" flush>
+      <Section className="sources-ledger" eyebrow="Detail" title="Pharmacy coverage & collection details" flush>
         <table className="tbl">
           <thead>
             <tr>
@@ -94,7 +94,7 @@ export default function Sources({ store, onNavigate, setFilters }) {
               <th className="r">Out</th>
               <th className="r">Observed</th>
               <th>Signal</th>
-              <th style={{ width: 30 }} />
+              <th style={{ width: 30 }}><span className="sr">Details</span></th>
             </tr>
           </thead>
           <tbody>
@@ -102,10 +102,10 @@ export default function Sources({ store, onNavigate, setFilters }) {
               const b = byId[p.pharmacy_id];
               const expanded = open === p.pharmacy_id;
               return (
-                <>
-                  <tr key={p.pharmacy_id} onClick={() => setOpen(expanded ? null : p.pharmacy_id)}
+                <Fragment key={p.pharmacy_id}>
+                  <tr
                     data-active={expanded}>
-                    <td style={{ fontWeight: 500 }}>{p.name}</td>
+                    <td><button className="table-action" aria-expanded={expanded} onClick={() => setOpen(expanded ? null : p.pharmacy_id)}>{p.name}</button></td>
                     <td className="dim tiny">{p.platform}</td>
                     <td className="r num">{n0(p.listings)}</td>
                     <td className="r num">{p.publishes_oos ? n0(p.in_stock) : '—'}</td>
@@ -116,7 +116,7 @@ export default function Sources({ store, onNavigate, setFilters }) {
                       {p.publishes_oos && b?.rate != null ? `${n1(b.rate)}%` : <span className="faint">—</span>}
                     </td>
                     <td>
-                      {p.quarantined ? <Tag tone="warn">quarantined</Tag> : <Tag tone="in">reporting</Tag>}
+                      {p.quarantined ? <Tag tone="plain">listings only</Tag> : <Tag tone="in">reporting</Tag>}
                     </td>
                     <td className="c dim"><Icon name={expanded ? 'up' : 'down'} size={12} /></td>
                   </tr>
@@ -147,7 +147,7 @@ export default function Sources({ store, onNavigate, setFilters }) {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               );
             })}
           </tbody>

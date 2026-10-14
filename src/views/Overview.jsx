@@ -11,7 +11,7 @@
 
 import { useMemo, useState } from 'react';
 import { runFilter, summarise, sourceBreakdown, EMPTY } from '../lib/filters.js';
-import { Section, Kpi, Icon, Strip, n0, n1, kes, compact, fmtDate } from '../components/ui.jsx';
+import { Section, Kpi, Icon, Strip, n0, n1, compact, fmtDate } from '../components/ui.jsx';
 import {
   useTip, SourceBars, TypeMix, PriceCurve, CoveragePlot, BandSteps, ConfidenceArc,
 } from '../components/charts.jsx';
@@ -89,10 +89,6 @@ export default function Overview({ store, onNavigate, setFilters }) {
     && D.review[P.review[i]] === 'auto'
   )), [all, P, D]);
   const shortage = reportable.slice(0, 12);
-  const clusterCount = useMemo(
-    () => reportable.filter((i) => P.nOos[i] >= 3).length,
-    [reportable, P],
-  );
 
   const quarantined = meta.pharmacies.filter((p) => p.present_in_snapshot && p.quarantined);
   const absent = meta.pharmacies.filter((p) => !p.present_in_snapshot);
@@ -127,12 +123,12 @@ export default function Overview({ store, onNavigate, setFilters }) {
       <header className="page-head overview-head">
         <div className="overview-title-block">
           <div>
-            <div className="eyebrow">Latest snapshot · {snapshotDate}</div>
-            <h1 className="h1">Availability overview</h1>
+            <div className="eyebrow">Latest snapshot · {snapshotDate}{meta.run.snapshot_at_inferred && ' · date inferred'}</div>
+            <h1 className="h1">Pharmacy availability, in context.</h1>
           </div>
           <p className="overview-lede">
-            A verified view of observed catalogue availability, with non-reporting feeds
-            quarantined from the network rate.
+            Find products across pharmacy catalogues. Compare reported stock and listed prices,
+            with the source and limitations beside every finding.
           </p>
         </div>
         <div className="section-actions overview-head-actions">
@@ -141,13 +137,21 @@ export default function Overview({ store, onNavigate, setFilters }) {
         </div>
       </header>
 
+      <section className="task-entry" aria-label="Start an investigation">
+        <button className="task-primary" onClick={() => { onNavigate('catalogue'); requestAnimationFrame(() => document.querySelector('[data-search] input')?.focus()); }}>
+          <span className="task-index">01</span><span><b>Find &amp; compare a product</b><small>Search by product name or active ingredient</small></span><Icon name="right" size={20} />
+        </button>
+        <button onClick={() => jump({ clinicalOnly: true, oosMin: 2 })}><span className="task-index">02</span><span><b>Investigate stockout reports</b><small>Medicines and devices reported out across sources</small></span><Icon name="right" size={20} /></button>
+        <button onClick={() => onNavigate('sources')}><span className="task-index">03</span><span><b>Understand source coverage</b><small>See which pharmacies report usable stock evidence</small></span><Icon name="right" size={20} /></button>
+      </section>
+
       <div className="stack">
         {/* ------------------------------------------------- headline --- */}
         <section className="section overview-pulse">
           <header className="section-head overview-pulse-head">
             <div className="titles">
-              <div className="eyebrow">Snapshot pulse</div>
-              <h2 className="section-title">What the network is reporting</h2>
+              <div className="eyebrow">Snapshot at a glance</div>
+              <h2 className="section-title">What the captured listings report</h2>
             </div>
             <div className="seg overview-sensitivity" role="group" aria-label="Availability basis">
               {scen.map((s) => (
@@ -159,15 +163,16 @@ export default function Overview({ store, onNavigate, setFilters }) {
               ))}
             </div>
           </header>
+          <p className="section-explainer">{basis === 'reporting' ? 'The rate below counts only sources that publish stock states. A missing signal does not mean a product is available.' : basis === 'all' ? 'Sensitivity only: this calculation assumes non-reporting feeds are fully available. It is not the headline availability measure.' : 'Sensitivity only: this calculation excludes the source contributing the most stockout reports.'}</p>
           <div className="pulse">
             {/* -- the state: one figure, encoded, not eight competing tiles - */}
             <div className="pulse-hero">
               <div className="pulse-figure">
                 <span className="pulse-pct num">{n1(active.value?.pct)}<sup>%</sup></span>
                 <div className="pulse-figure-meta">
-                  <span className="eyebrow">Observed availability</span>
-                  <span><b className="num">{n0(active.value?.inS)}</b> of{' '}
-                    <b className="num">{n0(active.value?.denom)}</b> rated listings</span>
+                  <span className="eyebrow">{basis === 'reporting' ? 'Rated listings in stock' : 'Sensitivity calculation'}</span>
+                  <span><b className="num pulse-number">{n0(active.value?.inS)}</b> of{' '}
+                    <b className="num pulse-number">{n0(active.value?.denom)}</b> {basis === 'all' ? 'listings under this assumption' : 'rated listings'}</span>
                   <span className="dim">{active.note}</span>
                 </div>
               </div>
@@ -185,7 +190,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
                   <div key={k} className={`pulse-seg pulse-seg-${k}`}
                     style={{ flexGrow: v, background: k === 'nosig' ? undefined : tone }}
                     onMouseMove={(e) => tip.show(e, (
-                      <><b>{label}</b><br /><span className="num">{n0(v)}</span> listings ·{' '}
+                      <><b>{label}</b><br /><span className="num pulse-number">{n0(v)}</span> listings ·{' '}
                         {n1((100 * v) / h.listings)}% of the panel</>
                     ))}
                     onMouseLeave={tip.hide}
@@ -200,7 +205,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
                 ].map(([label, v, tone]) => (
                   <span key={label}>
                     <i style={{ background: tone }} />{label}
-                    <b className="num">{compact(v)}</b>
+                    <b className="num pulse-number">{compact(v)}</b>
                   </span>
                 ))}
               </div>
@@ -208,7 +213,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
               {/* The sensitivity spread, shown rather than asserted: you can
                   see how far the headline moves depending on who counts. */}
               <div className="pulse-scale">
-                <span className="eyebrow">Spread across bases</span>
+                <span className="eyebrow">Compare calculation bases</span>
                 <div className="pulse-scale-track">
                   {scen.map((s) => {
                     const lo = Math.min(...scen.map((x) => x.value?.pct ?? 0)) - 6;
@@ -222,7 +227,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
                         onMouseLeave={tip.hide}
                       >
                         <i />
-                        <em className="num">{n1(s.value?.pct)}</em>
+                        <em className="num pulse-number">{n1(s.value?.pct)}</em>
                         <span>{s.label}</span>
                       </button>
                     );
@@ -232,36 +237,36 @@ export default function Overview({ store, onNavigate, setFilters }) {
             </div>
 
             {/* -- what it is made of ------------------------------------- */}
-            <dl className="pulse-list">
-              <div className="pulse-list-head"><span className="eyebrow">Panel composition</span></div>
-              <div><dt>Resolved products</dt><dd className="num">{compact(h.products)}</dd></div>
-              <div><dt>Catalogue listings</dt><dd className="num">{n0(h.listings)}</dd></div>
-              <div><dt>Sources reporting</dt>
-                <dd className="num">{h.pharmacies_publishing_oos}<span className="faint">/{h.pharmacies}</span></dd></div>
-              <div><dt>Median price</dt>
-                <dd className="num">{n0(h.median_price_kes)}<span className="faint"> KES</span></dd></div>
-              <div><dt>Widely available</dt><dd className="num">{n0(widelyAvailable.length)}</dd></div>
-            </dl>
+            <div className="pulse-list" role="group" aria-label="Catalogue coverage">
+              <div className="pulse-list-head"><span className="eyebrow">Catalogue coverage</span></div>
+              <div><span className="pulse-label">Resolved products</span><span className="num pulse-number">{compact(h.products)}</span></div>
+              <div><span className="pulse-label">Catalogue listings</span><span className="num pulse-number">{n0(h.listings)}</span></div>
+              <div><span className="pulse-label">Sources reporting</span>
+                <span className="num pulse-number">{h.pharmacies_publishing_oos}<span className="faint">/{h.pharmacies}</span></span></div>
+              <div><span className="pulse-label">Median price</span>
+                <span className="num pulse-number">{n0(h.median_price_kes)}<span className="faint"> KES</span></span></div>
+              <div><span className="pulse-label">Widely available</span><span className="num pulse-number">{n0(widelyAvailable.length)}</span></div>
+            </div>
 
             {/* -- what needs attention ----------------------------------- */}
-            <dl className="pulse-list pulse-list-alert">
-              <div className="pulse-list-head"><span className="eyebrow">Needs attention</span></div>
+            <div className="pulse-list pulse-list-alert" role="group" aria-label="Worth investigating">
+              <div className="pulse-list-head"><span className="eyebrow">Worth investigating</span></div>
               <button onClick={() => jump({ clinicalOnly: true, oosMin: 2 })}>
-                <dt>Clinical stockouts</dt><dd className="num">{n0(reportable.length)}</dd>
+                <span className="pulse-label">Clinical stockouts</span><span className="num pulse-number">{n0(reportable.length)}</span>
               </button>
               <button onClick={() => onNavigate('quality')}>
-                <dt>Unrated listings</dt><dd className="num">{compact(h.not_published)}</dd>
+                <span className="pulse-label">Stock not reported</span><span className="num pulse-number">{compact(h.not_published)}</span>
               </button>
               <button onClick={() => onNavigate('quality')}>
-                <dt>Awaiting reference</dt><dd className="num">{compact(cov.products_awaiting_drugindex)}</dd>
+                <span className="pulse-label">Awaiting reference</span><span className="num pulse-number">{compact(cov.products_awaiting_drugindex)}</span>
               </button>
               <button onClick={() => jump({ review: 'needs_review' })}>
-                <dt>In review</dt><dd className="num">{compact(reviewCount)}</dd>
+                <span className="pulse-label">In review</span><span className="num pulse-number">{compact(reviewCount)}</span>
               </button>
               <button onClick={() => onNavigate('sources')}>
-                <dt>Sources absent</dt><dd className="num">{absent.length}</dd>
+                <span className="pulse-label">Sources absent</span><span className="num pulse-number">{absent.length}</span>
               </button>
-            </dl>
+            </div>
           </div>
 
           <div className="provenance overview-provenance">
@@ -286,7 +291,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
                 <b>{quarantined.length} feeds publish no out-of-stock signal</b> and are excluded
                 from network availability. <b>{absent.length} pharmacies are absent</b> from this
                 snapshot — {absent.map((a) => a.name).join(', ')}. Counting non-reporting feeds as
-                available would read <span className="num">{n1(h.in_stock_rate_raw)}%</span> instead.
+                available would read <span className="num pulse-number">{n1(h.in_stock_rate_raw)}%</span> instead.
               </div>
             </div>
           )}
@@ -366,8 +371,8 @@ export default function Overview({ store, onNavigate, setFilters }) {
             </thead>
             <tbody>
               {shortage.map((i) => (
-                <tr key={P.key[i]} onClick={() => jump({ q: P.name[i] })}>
-                  <td className="cell-name">{P.name[i]}</td>
+                <tr key={P.key[i]}>
+                  <td className="cell-name"><button className="table-action" onClick={() => jump({ q: P.name[i] })}>{P.name[i]}</button></td>
                   <td className="cell-name dim tiny">
                     {P.ingredient[i] >= 0 ? D.ingredient[P.ingredient[i]] : '—'}
                   </td>
@@ -402,8 +407,8 @@ export default function Overview({ store, onNavigate, setFilters }) {
             </button>
           }
           caption={<>
-            The routing pool: products with enough independent in-stock coverage to send someone
-            to. Clinical only — a routing pool of face creams is no use to a patient.
+            Medicines and devices with broad reported in-stock coverage in this snapshot.
+            Confirm current stock, strength, form and price with the pharmacy.
             {widelyClinical.length === 0 && <> <b>Nothing clinical reaches five sources in this snapshot.</b></>}
           </>}
           flush
@@ -420,8 +425,8 @@ export default function Overview({ store, onNavigate, setFilters }) {
             </thead>
             <tbody>
               {(widelyClinical.length ? widelyClinical : widelyAvailable).slice(0, 12).map((i) => (
-                <tr key={P.key[i]} onClick={() => jump({ q: P.name[i] })}>
-                  <td className="cell-name">{P.name[i]}</td>
+                <tr key={P.key[i]}>
+                  <td className="cell-name"><button className="table-action" onClick={() => jump({ q: P.name[i] })}>{P.name[i]}</button></td>
                   <td className="cell-name dim tiny">
                     {P.ingredient[i] >= 0 ? D.ingredient[P.ingredient[i]] : '—'}
                   </td>

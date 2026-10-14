@@ -8,18 +8,21 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Modal from '../components/Modal.tsx';
+import ClinicalReader from '../components/ClinicalReader.tsx';
+import { useSmallScreen } from '../components/useSmallScreen.ts';
 import {
   runFilter, facetCounts, shopCounts, summarise, sourceBreakdown,
   activeChips, EMPTY,
 } from '../lib/filters.js';
-import { loadListings, listingsFor } from '../lib/store.js';
+import { loadListings, listingsFor, popcount } from '../lib/store.js';
 import {
   Section, Icon, Tag, Chip, StateTag, Strip, Empty, Facet, Check, RangePair,
   n0, n1, kes, compact, useVirtual,
 } from '../components/ui.jsx';
 import { useTip, useMeasure, SourceBars, TypeMix, PriceCurve, BandSteps, Matrix } from '../components/charts.jsx';
 
-const ROW_H = 34;
+const ROW_H = 56;
 
 /**
  * `minmax(0, …)` on the flexible column is what stops the grid pushing past
@@ -41,7 +44,7 @@ const ROW_H = 34;
  * strip is the reason the row is interesting.
  */
 const COLUMNS = [
-  { key: 'name', label: 'Product', sort: 'name', w: 'minmax(150px, 3fr)', needs: 0 },
+  { key: 'name', label: 'Product', sort: 'name', w: 'minmax(0, 3fr)', needs: 0 },
   { key: 'type', label: 'Class', sort: null, w: 'minmax(0, 96px)', needs: 820 },
   { key: 'strip', label: 'Availability', sort: null, w: '142px', needs: 0 },
   { key: 'listed', label: 'Listed', sort: 'listed', w: '52px', r: true, needs: 470 },
@@ -56,7 +59,9 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
   const [sort, setSort] = useState({ key: 'relevance', dir: 'desc' });
   const [selected, setSelected] = useState(null);
   const [view, setView] = useState('grid');
-  const [showFacets, setShowFacets] = useState(true);
+  const mobile = useSmallScreen();
+  const [showFacets, setShowFacets] = useState(false);
+  const [analysisColumns, setAnalysisColumns] = useState(false);
   const viewportRef = useRef(null);
   const tip = useTip();
 
@@ -116,21 +121,23 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
   // Until the container reports a width, assume it is wide: showing every
   // column then dropping some is far less jarring than the reverse.
   const columns = useMemo(
-    () => COLUMNS.filter((c) => !c.needs || gridWidth === 0 || gridWidth >= c.needs),
-    [gridWidth],
+    () => mobile ? [COLUMNS[0], { ...COLUMNS[2], label: 'Stock / price', w: '118px' }] : analysisColumns ? COLUMNS.filter((c) => !c.needs || gridWidth === 0 || gridWidth >= c.needs) : [COLUMNS[0], { ...COLUMNS[2], label: 'Stock reports', w: '160px' }, ...(gridWidth > 620 ? [{ ...COLUMNS[3], label: 'Sources', w: '72px' }] : []), { ...COLUMNS[6], label: 'Listed median', w: '110px' }],
+    [gridWidth, mobile, analysisColumns],
   );
   const gridTemplate = columns.map((c) => c.w).join(' ');
 
-  return (
-    <div className={`catalogue-shell${showFacets ? ' facets-open' : ''}`}>
-      {tip.node}
+  const reportingBits = shops.filter(shop => shop.publishes_oos).map(shop => shop.bit);
+  const sameBits = (bits) => bits.length === reportingBits.length && reportingBits.every(bit => bits.includes(bit));
+  const stockChoice = !filters.stockIn.length && !filters.stockOut.length ? 'all'
+    : sameBits(filters.stockIn) && !filters.stockOut.length ? 'in'
+    : sameBits(filters.stockOut) && !filters.stockIn.length ? 'out' : 'custom';
 
-      {/* ---------------------------------------------------------- facets */}
-      {showFacets && (
-        <aside className="catalogue-facets">
+  const facetPanel = (
+    <aside className="catalogue-facets" aria-label="Catalogue filters">
           <div className="catalogue-facet-top">
             <div className="row">
-              <span className="eyebrow">Refine</span>
+              <h2 className="h3" id="filter-title">Refine results</h2>
+              <button className="btn btn-icon filter-close" aria-label="Close filters" onClick={() => setShowFacets(false)}><Icon name="x" size={16} /></button>
               <button className="btn btn-ghost btn-sm spacer"
                 onClick={() => setFilters({ ...EMPTY })}
                 disabled={!chips.length}>Reset</button>
@@ -138,7 +145,8 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
           </div>
 
           <div className="facets">
-            <Facet title="Classification" count={filters.types.length || null} defaultOpen>
+            <div className="facet-body"><Check label="Show analysis columns" on={analysisColumns} onChange={() => setAnalysisColumns(!analysisColumns)} /></div>
+            <Facet title="Product type" count={filters.types.length || null} defaultOpen>
               <label className="facet-opt" data-on={filters.clinicalOnly}
                 style={{ marginBottom: 6, paddingBottom: 6, borderBottom: '1px solid var(--line-faint)' }}>
                 <input type="checkbox" checked={filters.clinicalOnly}
@@ -167,7 +175,7 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
                 ))}
             </Facet>
 
-            <Facet title="Shortage band" count={filters.bands.length || null} defaultOpen>
+            <Facet title="Stockout extent" count={filters.bands.length || null}>
               {['isolated', 'local', 'cluster', 'systemic', 'national', 'total', 'none']
                 .map((name) => D.band.indexOf(name))
                 .filter((i) => i >= 0)
@@ -178,13 +186,19 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
             </Facet>
 
             <Facet title="Pharmacies" count={
-              (filters.shopsAny.length + filters.stockIn.length + filters.stockOut.length) || null
+              (filters.shopsAny.length + filters.shopsAll.length + filters.stockIn.length + filters.stockOut.length) || null
             }>
               <div className="micro dim" style={{ marginBottom: 5 }}>Listed in any of</div>
               {shops.map((s) => (
                 <Check key={s.pharmacy_id} label={s.name} n={shopN.listed[s.bit]}
                   on={filters.shopsAny.includes(s.bit)} onChange={() => toggle('shopsAny', s.bit)} />
               ))}
+              <details className="source-filter-group"><summary>Listed in every selected pharmacy</summary>
+                {shops.map(shop => <Check key={shop.pharmacy_id} label={`All of · ${shop.name}`} on={filters.shopsAll.includes(shop.bit)} onChange={() => toggle('shopsAll', shop.bit)} />)}
+              </details>
+              <details className="source-filter-group"><summary>In stock at any selected pharmacy</summary>
+                {shops.filter(shop => shop.publishes_oos).map(shop => <Check key={shop.pharmacy_id} label={`In stock · ${shop.name}`} on={filters.stockIn.includes(shop.bit)} onChange={() => toggle('stockIn', shop.bit)} />)}
+              </details>
               <div className="micro dim" style={{ margin: '10px 0 5px' }}>Out of stock at</div>
               {shops.filter((s) => s.publishes_oos).map((s) => (
                 <Check key={s.pharmacy_id} label={s.name} n={shopN.oos[s.bit]}
@@ -192,17 +206,17 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
               ))}
             </Facet>
 
-            <Facet title="Coverage" count={(filters.listedMin || filters.oosMin) ? 1 : null}>
+            <Facet title="Advanced · source counts" count={(filters.listedMin || filters.oosMin) ? 1 : null}>
               <div className="micro dim" style={{ marginBottom: 4 }}>Pharmacies listing</div>
-              <RangePair min={filters.listedMin || null} max={filters.listedMax || null}
+              <RangePair label="pharmacies listing" min={filters.listedMin || null} max={filters.listedMax || null}
                 onMin={(v) => patch({ listedMin: v ?? 0 })} onMax={(v) => patch({ listedMax: v ?? 0 })} />
               <div className="micro dim" style={{ margin: '10px 0 4px' }}>Pharmacies out of stock</div>
-              <RangePair min={filters.oosMin || null} max={filters.oosMax || null}
+              <RangePair label="pharmacies out of stock" min={filters.oosMin || null} max={filters.oosMax || null}
                 onMin={(v) => patch({ oosMin: v ?? 0 })} onMax={(v) => patch({ oosMax: v ?? 0 })} />
             </Facet>
 
-            <Facet title="Price (median)" count={(filters.priceMin != null || filters.priceMax != null) ? 1 : null}>
-              <RangePair min={filters.priceMin} max={filters.priceMax}
+            <Facet title="Listed price · KES" count={(filters.priceMin != null || filters.priceMax != null) ? 1 : null}>
+              <RangePair label="listed median price in KES" min={filters.priceMin} max={filters.priceMax}
                 onMin={(v) => patch({ priceMin: v })} onMax={(v) => patch({ priceMax: v })}
                 placeholderMin="KES min" placeholderMax="KES max" />
               <div className="micro dim" style={{ marginTop: 8 }}>
@@ -210,21 +224,25 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
               </div>
             </Facet>
 
-            <Facet title="Dose form" count={filters.forms.length || null}>
+            <Facet title="Form · tablet, cream and more" count={filters.forms.length || null}>
               {D.form.map((label, i) => (formN[i] ? (
                 <Check key={label} label={label} n={formN[i]}
                   on={filters.forms.includes(i)} onChange={() => toggle('forms', i)} />
               ) : null))}
             </Facet>
 
-            <Facet title="Source category" count={filters.categories.length || null}>
+            <Facet title="Pack format" count={filters.packKinds.length || null}>
+              {D.packKind.map((label, index) => <Check key={label} label={label.replaceAll('_', ' ')} on={filters.packKinds.includes(index)} onChange={() => toggle('packKinds', index)} />)}
+            </Facet>
+
+            <Facet title="Advanced · source categories" count={filters.categories.length || null}>
               {topCategories.map((c) => (
                 <Check key={c.label} label={c.label} n={c.n}
                   on={filters.categories.includes(c.i)} onChange={() => toggle('categories', c.i)} />
               ))}
             </Facet>
 
-            <Facet title="Match quality" count={filters.matchBands.length || null}>
+            <Facet title="Advanced · match confidence" count={filters.matchBands.length || null}>
               {D.matchBand.map((label, i) => (
                 <Check key={label} label={label} n={matchN[i]}
                   on={filters.matchBands.includes(i)} onChange={() => toggle('matchBands', i)} />
@@ -232,14 +250,14 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
               <div className="micro dim" style={{ margin: '9px 0 3px' }}>
                 Minimum confidence · {filters.confMin.toFixed(2)}
               </div>
-              <input type="range" min="0" max="1" step="0.05" value={filters.confMin}
+              <input type="range" min="0" max="1" step="0.05" value={filters.confMin} aria-label="Minimum match confidence"
                 onChange={(e) => patch({ confMin: Number(e.target.value) })} />
             </Facet>
 
-            <Facet title="Reference data" count={
+            <Facet title="Advanced · reference coverage" count={
               (filters.gaps.length + (filters.monograph !== 'all' ? 1 : 0)) || null
             }>
-              <div className="micro dim" style={{ marginBottom: 4 }}>DrugIndex monograph</div>
+              <div className="micro dim" style={{ marginBottom: 4 }}>DrugIndex reference link</div>
               <div className="seg" style={{ width: '100%', marginBottom: 9 }}>
                 {[['all', 'Any'], ['with', 'Has'], ['without', 'None']].map(([v, l]) => (
                   <button key={v} style={{ flex: 1 }} aria-pressed={filters.monograph === v}
@@ -253,9 +271,9 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
               ) : null))}
             </Facet>
 
-            <Facet title="Review state" count={filters.review !== 'all' ? 1 : null}>
+            <Facet title="Advanced · review status" count={filters.review !== 'all' ? 1 : null}>
               <div className="seg" style={{ width: '100%' }}>
-                {[['all', 'All'], ['auto', 'Trusted'], ['needs_review', 'In review']].map(([v, l]) => (
+                {[['all', 'All'], ['auto', 'Automatic'], ['needs_review', 'In review']].map(([v, l]) => (
                   <button key={v} style={{ flex: 1 }} aria-pressed={filters.review === v}
                     onClick={() => patch({ review: v })}>{l}</button>
                 ))}
@@ -268,30 +286,32 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
             </Facet>
           </div>
         </aside>
-      )}
+  );
+
+  return (
+    <div className={`catalogue-shell${showFacets ? ' facets-open' : ''}`}>
+      {tip.node}
+
+      {/* ---------------------------------------------------------- facets */}
+      {showFacets && (mobile ? <Modal className="filter-dialog" labelledBy="filter-title" onClose={() => setShowFacets(false)}>
+        {facetPanel}
+        <div className="filter-footer"><button className="btn btn-primary" onClick={() => setShowFacets(false)}>Show {n0(rows.length)} results</button></div>
+      </Modal> : facetPanel)}
 
       {/* ------------------------------------------------------------ main */}
       <div className="catalogue-main" ref={gridRef}>
+        <header className="catalogue-heading"><h1 className="h1">Find &amp; compare</h1><span className="catalogue-result-count" role="status" aria-live="polite">{n0(rows.length)} results</span></header>
         {/* toolbar */}
         <div className="catalogue-toolbar">
           <div className="catalogue-command-row">
-            <button className="btn btn-icon" onClick={() => setShowFacets(!showFacets)}
-              title={showFacets ? 'Hide filters' : 'Show filters'} aria-pressed={showFacets}>
-              <Icon name="filter" size={14} />
+            <button className="btn" onClick={() => setShowFacets(!showFacets)}
+              aria-label={showFacets ? 'Hide more filters' : 'More filters'} aria-expanded={showFacets}>
+              <Icon name="filter" size={14} /><span>More filters</span>
             </button>
-            <div className="field catalogue-search">
-              <Icon name="search" size={14} />
-              <input
-                value={filters.q}
-                onChange={(e) => patch({ q: e.target.value })}
-                placeholder="Search product name or active ingredient…"
-              />
-              {filters.q && (
-                <button onClick={() => patch({ q: '' })} className="dim"><Icon name="x" size={12} /></button>
-              )}
-            </div>
+            <button className={`btn ${filters.clinicalOnly ? 'quick-selected' : ''}`} aria-pressed={filters.clinicalOnly}
+              onClick={() => patch({ clinicalOnly: !filters.clinicalOnly, types: [] })}>Medicines &amp; devices</button>
             <div className="seg catalogue-view-switch">
-              {[['grid', 'Grid'], ['matrix', 'Matrix'], ['charts', 'Charts']].map(([v, l]) => (
+              {[['grid', 'List'], ['matrix', 'Matrix'], ['charts', 'Charts']].map(([v, l]) => (
                 <button key={v} aria-pressed={view === v} onClick={() => setView(v)}>{l}</button>
               ))}
             </div>
@@ -300,6 +320,20 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
             </span>
           </div>
 
+          <div className="quick-filters">
+            <label>Stock evidence<select value={stockChoice} onChange={(event) => patch({ stockIn: event.target.value === 'in' ? reportingBits : [], stockOut: event.target.value === 'out' ? reportingBits : [] })}>
+              <option value="all">Any reported state</option><option value="in">In stock somewhere</option><option value="out">Out of stock somewhere</option>{stockChoice === 'custom' && <option value="custom">Custom stock selection</option>}
+            </select></label>
+            <label>Pharmacy<select value={filters.shopsAny.length === 1 ? filters.shopsAny[0] : filters.shopsAny.length ? 'custom' : 'all'} onChange={(event) => patch({ shopsAny: event.target.value === 'all' ? [] : [Number(event.target.value)] })}>
+              <option value="all">All pharmacies</option>{shops.map(shop => <option key={shop.bit} value={shop.bit}>{shop.name}</option>)}{filters.shopsAny.length > 1 && <option value="custom">Multiple pharmacies</option>}
+            </select></label>
+            <label className="catalogue-sort">Sort results<select value={`${sort.key}:${sort.dir}`} onChange={(event) => { const [key, dir] = event.target.value.split(':'); setSort({ key, dir }); }}>
+              <option value="relevance:desc">Most stockout reports</option><option value="name:desc">Product name A–Z</option><option value="name:asc">Product name Z–A</option>
+              <option value="price:asc">Listed median price · low first</option><option value="price:desc">Listed median price · high first</option><option value="listed:desc">Most pharmacies listing</option>
+              <option value="oos:desc">Out-of-stock source count</option><option value="instock:desc">In-stock source count</option><option value="oosShare:desc">Out-of-stock share</option><option value="conf:desc">Highest match confidence</option><option value="listings:desc">Most listings</option>
+              {!['relevance:desc','name:desc','name:asc','price:asc','price:desc','listed:desc','oos:desc','instock:desc','oosShare:desc','conf:desc','listings:desc'].includes(`${sort.key}:${sort.dir}`) && <option value={`${sort.key}:${sort.dir}`}>Current column sort</option>}
+            </select></label>
+          </div>
           {chips.length > 0 && (
             <div className="catalogue-chip-row">
               {chips.map((c) => (
@@ -313,7 +347,7 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
         </div>
 
         {/* result summary strip */}
-        <div className="provenance catalogue-telemetry">
+        <details className="catalogue-selection-summary"><summary>Selection statistics</summary><div className="provenance catalogue-telemetry">
           <span><b className="num" style={{ color: 'var(--ink)' }}>{n0(stats.clinical)}</b> clinical</span>
           <span className="sep">·</span>
           <span><b className="num" style={{ color: 'var(--ink)' }}>{n0(stats.oosAny)}</b> with a stockout</span>
@@ -322,14 +356,15 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
           <span className="sep">·</span>
           <span>median <b className="num" style={{ color: 'var(--ink)' }}>{kes(stats.price.p50)}</b></span>
           <span className="sep">·</span>
-          <span><b className="num" style={{ color: 'var(--ink)' }}>{n0(stats.withMono)}</b> with monograph</span>
-        </div>
+          <span><b className="num" style={{ color: 'var(--ink)' }}>{n0(stats.withMono)}</b> reference-linked</span>
+        </div></details>
 
+        <p className="catalogue-mobile-note">Open a product to compare pharmacy listings and prices.</p>
         {/* body */}
         {rows.length === 0 ? (
           <Empty
             title="Nothing matches those filters"
-            note="Try widening the shortage band, clearing a pharmacy selection, or removing the price bound."
+            note="Try a shorter product name, another ingredient, or clear a pharmacy or price filter."
             action={<button className="btn" onClick={() => setFilters({ ...EMPTY })}>Reset filters</button>}
           />
         ) : view === 'charts' ? (
@@ -398,14 +433,15 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
               ))}
             </div>
 
-            <div ref={viewportRef} className="scroll catalogue-grid-scroll">
+            <div ref={viewportRef} className="scroll catalogue-grid-scroll" role="region" aria-label="Product results" tabIndex={0}>
               <div style={{ height: rows.length * ROW_H, position: 'relative' }}>
                 <div style={{ transform: `translateY(${range.start * ROW_H}px)` }}>
                   {rows.slice(range.start, range.end).map((i) => (
                     <Row key={P.key[i]} store={store} i={i} tip={tip}
                       template={gridTemplate} columns={columns}
                       active={selected === i}
-                      onSelect={() => setSelected(i)} />
+                      onSelect={() => setSelected(i)}
+                      onMove={(direction) => { const index = Math.max(0, Math.min(rows.length - 1, rows.indexOf(i) + direction)); viewportRef.current.scrollTop = Math.max(0, index * ROW_H - ROW_H); requestAnimationFrame(() => requestAnimationFrame(() => document.querySelector(`[data-product-index="${rows[index]}"]`)?.focus())); }} />
                   ))}
                 </div>
               </div>
@@ -431,12 +467,10 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
  */
 const CELL = {
   name: ({ P, D, i }) => (
-    <div className="trunc" style={{ fontSize: 12 }}>
-      {P.name[i]}
-      {P.ingredient[i] >= 0 && (
-        <span className="dim tiny" style={{ marginLeft: 6 }}>{D.ingredient[P.ingredient[i]]}</span>
-      )}
-    </div>
+    <span className="product-cell">
+      <span className="product-name">{P.name[i]}</span>
+      {P.ingredient[i] >= 0 && <span className="product-ingredient">{D.ingredient[P.ingredient[i]]}</span>}
+    </span>
   ),
   type: ({ P, D, i }) => (
     <div className="trunc tiny" style={{ color: P.clinical[i] ? 'var(--ink)' : 'var(--ink-3)' }}>
@@ -444,7 +478,7 @@ const CELL = {
     </div>
   ),
   strip: ({ store, P, i, tip }) => (
-    <Strip store={store} listedMask={P.listedMask[i]} inMask={P.inMask[i]} oosMask={P.oosMask[i]}
+    <span><span className="compact-evidence"><b>{popcount(P.inMask[i])} in · {popcount(P.oosMask[i])} out</b><span className="num">{kes(P.priceMed[i])}</span><span>{P.nListed[i]} sources listing</span></span><span className="desktop-evidence">{popcount(P.inMask[i])} in stock · {popcount(P.oosMask[i])} out</span><Strip store={store} listedMask={P.listedMask[i]} inMask={P.inMask[i]} oosMask={P.oosMask[i]}
       onHover={(e, s, cls) => tip.show(e, (
         <><b>{s.name}</b><br />{
           cls === 'cell-none' ? 'not listed'
@@ -453,7 +487,7 @@ const CELL = {
         }</>
       ))}
       onLeave={tip.hide}
-    />
+    /></span>
   ),
   listed: ({ P, i }) => <div className="num tiny" style={{ textAlign: 'right' }}>{P.nListed[i]}</div>,
   oos: ({ P, i }) => (
@@ -471,7 +505,7 @@ const CELL = {
   },
   price: ({ P, i }) => (
     <div className="num tiny" style={{ textAlign: 'right' }}>
-      {Number.isFinite(P.priceMed[i]) ? n0(P.priceMed[i]) : '—'}
+      {kes(P.priceMed[i])}
     </div>
   ),
   conf: ({ P, i }) => {
@@ -485,10 +519,14 @@ const CELL = {
   },
 };
 
-function Row({ store, i, template, columns, active, onSelect, tip }) {
+function Row({ store, i, template, columns, active, onSelect, onMove, tip }) {
   const { P, D } = store;
   return (
-    <div
+    <button
+      type="button"
+      aria-label={`${P.name[i]}; ${popcount(P.inMask[i])} sources report in stock; ${popcount(P.oosMask[i])} out of ${P.nEligible[i]} reporting sources out of stock; median ${kes(P.priceMed[i])}`}
+      data-product-index={i}
+      onKeyDown={(event) => { if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); onMove(event.key === 'ArrowDown' ? 1 : -1); } }}
       onClick={onSelect}
       className="catalogue-row"
       data-active={active}
@@ -498,7 +536,7 @@ function Row({ store, i, template, columns, active, onSelect, tip }) {
         const Cell = CELL[c.key];
         return Cell ? <Cell key={c.key} store={store} P={P} D={D} i={i} tip={tip} /> : null;
       })}
-    </div>
+    </button>
   );
 }
 
@@ -519,14 +557,8 @@ function Detail({ store, i, onClose, onPick, tip }) {
   }, [store, P, i]);
   const [listings, setListings] = useState(() => (store.listings ? listingsFor(store, i) : null));
   const [loading, setLoading] = useState(!store.listings);
-
-  // Escape closes the drawer. An overlay that can only be dismissed by hitting
-  // a small target is a trap for keyboard users.
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  const [listingError, setListingError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   // Listing detail is fetched lazily, so the drawer resolves it on open and
   // falls back to fetching if the background load has not landed yet.
@@ -538,18 +570,17 @@ function Detail({ store, i, onClose, onPick, tip }) {
       return () => { alive = false; };
     }
     setLoading(true);
+    setListingError(false);
     loadListings(store)
       .then(() => { if (alive) { setListings(listingsFor(store, i)); setLoading(false); } })
-      .catch(() => { if (alive) setLoading(false); });
+      .catch(() => { if (alive) { setLoading(false); setListingError(true); } });
     return () => { alive = false; };
-  }, [store, i]);
+  }, [store, i, attempt]);
 
   const band = D.band[P.band[i]];
 
   return (
-    <>
-      <div className="scrim" onClick={onClose} />
-      <aside className="drawer">
+    <Modal className="drawer" labelledBy="product-title" onClose={onClose}>
         <header className="drawer-head">
           <div className="row">
             <span className="eyebrow">Resolved product</span>
@@ -557,7 +588,7 @@ function Detail({ store, i, onClose, onPick, tip }) {
               <Icon name="x" size={14} />
             </button>
           </div>
-          <h2 className="h2 drawer-title">{P.name[i]}</h2>
+          <h2 className="h2 drawer-title" id="product-title">{P.name[i]}</h2>
           <div className="row wrap drawer-tags">
             <Tag tone={P.clinical[i] ? 'accent' : 'plain'}>{D.type[P.type[i]].replace(/_/g, ' ')}</Tag>
             {band !== 'none' && <Tag tone={P.nOos[i] >= 3 ? 'out' : 'plain'}>{band}</Tag>}
@@ -567,23 +598,24 @@ function Detail({ store, i, onClose, onPick, tip }) {
         </header>
 
         <div className="drawer-body">
+          <p className="detail-caveat">Snapshot evidence · collection date inferred. Confirm current stock and price before visiting.</p>
           <div className="kpis">
             <div className="kpi">
-              <div className="kpi-label">Listed</div>
-              <div className="kpi-value" style={{ fontSize: 19 }}>{P.nListed[i]}</div>
+              <div className="kpi-label">Pharmacies listing</div>
+              <div className="kpi-value" style={{ fontSize: 'var(--text-lg)' }}>{P.nListed[i]}</div>
               <div className="kpi-note">of {store.shops.length} sources</div>
             </div>
             <div className="kpi">
-              <div className="kpi-label">Out of stock</div>
-              <div className="kpi-value" style={{ fontSize: 19, color: P.nOos[i] ? 'var(--out)' : undefined }}>
-                {P.nOos[i]}
+              <div className="kpi-label">Report out of stock</div>
+              <div className="kpi-value" style={{ fontSize: 'var(--text-lg)', color: P.nOos[i] ? 'var(--out)' : undefined }}>
+                {popcount(P.oosMask[i])}
               </div>
               <div className="kpi-note">of {P.nEligible[i]} reporting</div>
             </div>
             <div className="kpi">
-              <div className="kpi-label">Median</div>
-              <div className="kpi-value" style={{ fontSize: 19 }}>
-                {Number.isFinite(P.priceMed[i]) ? n0(P.priceMed[i]) : '—'}
+              <div className="kpi-label">Listed median price</div>
+              <div className="kpi-value" style={{ fontSize: 'var(--text-lg)' }}>
+                {kes(P.priceMed[i])}
               </div>
               <div className="kpi-note">
                 {Number.isFinite(P.priceMin[i]) ? `${n0(P.priceMin[i])}–${n0(P.priceMax[i])}` : 'no price'}
@@ -591,40 +623,26 @@ function Detail({ store, i, onClose, onPick, tip }) {
             </div>
           </div>
 
-          <div className="drawer-section"><h3>Per-source detail</h3>
+          <div className="drawer-section"><h3>Pharmacy listings &amp; prices</h3>
+          <p className="reader-intro">Each row is a collected listing. “Stock not reported” means the source does not provide a usable stock signal.</p>
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {[0, 1, 2].map((k) => <div key={k} className="sk" style={{ height: 34 }} />)}
             </div>
-          ) : (
-            <table className="tbl" style={{ marginBottom: 20 }}>
-              <tbody>
-                {listings?.map((l, k) => (
-                  <tr key={k} style={{ cursor: 'default' }}>
-                    <td style={{ paddingLeft: 0 }}>
-                      <div className="trunc" style={{ fontSize: 12 }}>{l.shop.name}</div>
-                      <div className="trunc micro dim" style={{ maxWidth: 220 }}>{l.rawName}</div>
-                    </td>
-                    <td><StateTag state={l.state} /></td>
-                    <td className="num r" style={{ fontSize: 11.5 }}>{l.price ? n0(l.price) : '—'}</td>
-                    <td className="r" style={{ paddingRight: 0, width: 28 }}>
-                      {l.url && (
-                        <a href={l.url} target="_blank" rel="noopener noreferrer"
-                          className="dim" title="Open product page">
-                          <Icon name="link" size={13} />
-                        </a>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          ) : listingError ? <div className="feedback" role="alert"><p>Source listings could not load. Check your connection and try again.</p><button className="btn" onClick={() => setAttempt(a => a + 1)}>Retry source listings</button></div> : (
+            <ul className="source-observations" aria-label="Pharmacy listings and prices">
+              {listings?.map((listing, key) => <li className="source-observation" key={key}>
+                <div className="observation-identity"><h4>{listing.shop.name}</h4><span className="observation-name">{listing.rawName}</span></div>
+                <div className="observation-evidence"><StateTag state={listing.state} /><span className="observation-price num">{kes(listing.price)}</span></div>
+                {listing.url && /^https?:\/\//i.test(listing.url) && <a className="btn observation-link" href={listing.url} target="_blank" rel="noopener noreferrer" aria-label={`View listing at ${listing.shop.name}`}>View listing <Icon name="link" size={14} /></a>}
+              </li>)}
+            </ul>
           )}
 
           </div>
 
-          <div className="drawer-section">
-            <h3>Identity &amp; provenance</h3>
+          <details className="drawer-section secondary-detail">
+            <summary>Product identity &amp; matching details</summary>
             <dl className="kv">
             <dt>Match key</dt>
             <dd className="mono micro" style={{ wordBreak: 'break-all' }}>{P.key[i]}</dd>
@@ -640,27 +658,27 @@ function Detail({ store, i, onClose, onPick, tip }) {
             <dd className="num">{P.classConf[i].toFixed(2)}</dd>
               {P.gap[i] >= 0 && (<><dt>Classification gap</dt><dd><Tag tone="warn">{D.gap[P.gap[i]]}</Tag></dd></>)}
             </dl>
-          </div>
+          </details>
 
           {substitutes.length > 0 && (
-            <div className="drawer-section">
-              <h3>Same active ingredient</h3>
+            <details className="drawer-section secondary-detail">
+              <summary>Other products with this ingredient</summary>
               <table className="tbl">
                 <tbody>
                   {substitutes.map((s) => (
-                    <tr key={P.key[s]} onClick={() => onPick?.(s)}>
+                    <tr key={P.key[s]}>
                       <td style={{ paddingLeft: 0 }}>
-                        <div className="trunc drawer-source-name">{P.name[s]}</div>
+                        <button className="table-action" onClick={() => onPick?.(s)}>{P.name[s]}</button>
                         <div className="trunc drawer-source-raw">
-                          {P.nIn[s]} of {P.nListed[s]} sources in stock
+                          {popcount(P.inMask[s])} of {P.nListed[s]} sources report in stock
                         </div>
                       </td>
                       <td className="r" style={{ width: 86 }}>
-                        {P.nIn[s] > 0
-                          ? <Tag tone="in">{P.nIn[s]} in stock</Tag>
-                          : <Tag tone="out">none in stock</Tag>}
+                        {popcount(P.inMask[s]) > 0
+                          ? <Tag tone="in">{popcount(P.inMask[s])} in stock</Tag>
+                          : <Tag tone="out">no in-stock reports</Tag>}
                       </td>
-                      <td className="num r" style={{ width: 62, fontSize: 11.5 }}>
+                      <td className="num r" style={{ width: 62, fontSize: 'var(--text-xs)' }}>
                         {Number.isFinite(P.priceMed[s]) ? n0(P.priceMed[s]) : '—'}
                       </td>
                     </tr>
@@ -668,16 +686,16 @@ function Detail({ store, i, onClose, onPick, tip }) {
                 </tbody>
               </table>
               <div className="tiny dim" style={{ marginTop: 10, lineHeight: 1.5 }}>
-                Shares an active ingredient, ranked by how many sources have it in stock.
+                These products share an active ingredient; their strength, form and pack may differ.
                 Same molecule is not the same product — check strength and form before
                 treating one as a substitute for another.
               </div>
-            </div>
+            </details>
           )}
 
           {P.ingredient[i] >= 0 && (
             <div className="drawer-section">
-              <h3>Drug register monograph</h3>
+              <h3>Drug register extract</h3>
               <dl className="kv">
                 <dt>Active ingredient</dt>
                 <dd>{D.ingredient[P.ingredient[i]]}</dd>
@@ -691,8 +709,9 @@ function Detail({ store, i, onClose, onPick, tip }) {
               </dl>
             </div>
           )}
+          {P.ingredient[i] >= 0 && <ClinicalReader key={D.ingredient[P.ingredient[i]]} ingredient={D.ingredient[P.ingredient[i]]} />}
+          <p className="reader-intro">Stock and prices reflect collected listings. Confirm current availability and price with the pharmacy.</p>
         </div>
-      </aside>
-    </>
+    </Modal>
   );
 }

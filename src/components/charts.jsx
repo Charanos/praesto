@@ -56,7 +56,7 @@ export function useTip() {
     <div
       className="tip"
       style={{
-        left: Math.min(tip.x + 14, window.innerWidth - 300),
+        left: Math.max(8, Math.min(tip.x + 14, window.innerWidth - 300)),
         top: Math.max(8, tip.y - 12),
       }}
     >
@@ -83,7 +83,10 @@ export function SourceBars({ rows, tip, onPick, selected }) {
           <div
             className="barrow"
             key={r.shop.pharmacy_id}
-            style={{ cursor: onPick ? 'pointer' : 'default', opacity: on === false && selected?.length ? 0.45 : 1 }}
+            style={{ cursor: onPick ? 'pointer' : 'default', opacity: 1 }}
+            role={onPick ? 'button' : undefined} tabIndex={onPick ? 0 : undefined}
+            aria-label={`${r.shop.name}: ${n0(r.listed)} listed; ${reports ? `${n0(r.inStock)} in stock, ${n0(r.oos)} out of stock` : 'no stock signal'}`}
+            onKeyDown={(event) => { if (onPick && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); onPick(r.shop.bit); } }}
             onClick={() => onPick?.(r.shop.bit)}
             onMouseMove={(e) => tip.show(e, (
               <>
@@ -138,14 +141,14 @@ export function SourceBars({ rows, tip, onPick, selected }) {
 /* ------------------------------------------------------------ type mix -- */
 
 const TYPE_TONE = {
-  medicine: 'var(--ramp-5)',
-  device: 'var(--ramp-4)',
-  supplement: 'var(--ramp-3)',
-  cosmetic: 'var(--ramp-2)',
-  personal_care: 'var(--ramp-2)',
-  food: 'var(--ramp-1)',
-  sexual_wellness: 'var(--ramp-1)',
-  unclassified: 'var(--line-strong)',
+  medicine: 'var(--category-medicine)',
+  device: 'var(--category-device)',
+  supplement: 'var(--category-supplement)',
+  cosmetic: 'var(--category-cosmetic)',
+  personal_care: 'var(--category-personal)',
+  food: 'var(--category-food)',
+  sexual_wellness: 'var(--category-wellness)',
+  unclassified: 'var(--category-unknown)',
 };
 
 export function TypeMix({ counts, labels, tip, onPick, selected }) {
@@ -161,7 +164,7 @@ export function TypeMix({ counts, labels, tip, onPick, selected }) {
         {order.map((d) => (
           <div
             key={d.label}
-            className="mark"
+            className="mark" aria-hidden="true"
             style={{
               width: `${(100 * d.n) / total}%`,
               background: TYPE_TONE[d.label] ?? 'var(--ramp-2)',
@@ -169,7 +172,6 @@ export function TypeMix({ counts, labels, tip, onPick, selected }) {
               outline: selected?.includes(d.i) ? '2px solid var(--ink)' : 'none',
               outlineOffset: -2,
             }}
-            onClick={() => onPick?.(d.i)}
             onMouseMove={(e) => tip.show(e, (
               <><b>{d.label.replace(/_/g, ' ')}</b><br />
                 <span className="num">{n0(d.n)}</span> products · {((100 * d.n) / total).toFixed(1)}%</>
@@ -192,7 +194,7 @@ export function TypeMix({ counts, labels, tip, onPick, selected }) {
             onClick={() => onPick?.(d.i)}
             style={{
               display: 'grid', gridTemplateColumns: '9px 1fr auto',
-              alignItems: 'center', gap: 8, textAlign: 'left', fontSize: 11.5,
+              alignItems: 'center', gap: 8, textAlign: 'left', fontSize: 'var(--text-xs)',
               color: selected?.includes(d.i) ? 'var(--ink)' : 'var(--ink-2)',
               fontWeight: selected?.includes(d.i) ? 500 : 400,
             }}
@@ -207,7 +209,7 @@ export function TypeMix({ counts, labels, tip, onPick, selected }) {
               background: TYPE_TONE[d.label] ?? 'var(--ramp-2)',
             }} />
             <span className="trunc">{d.label.replace(/_/g, ' ')}</span>
-            <span className="num" style={{ fontSize: 10.5, color: 'var(--ink-4)' }}>{n0(d.n)}</span>
+            <span className="num" style={{ fontSize: 'var(--text-xs)', color: 'var(--ink-4)' }}>{n0(d.n)}</span>
           </button>
         ))}
       </div>
@@ -277,7 +279,7 @@ export function PriceCurve({ prices, p10, p50, p90, tip, height = 150 }) {
 
   return (
     <div ref={ref} style={{ width: '100%' }}>
-      <svg className="chart" width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+      <svg role="img" aria-label={`Listed price distribution in KES: p10 ${n0(p10)}, median ${n0(p50)}, p90 ${n0(p90)}; ${n0(prices.length)} priced products`} className="chart" width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
         {/* Baseline first, so bars sit on a rule rather than float. */}
         <line className="axis" x1={pad.l} x2={W - pad.r} y1={H - pad.b} y2={H - pad.b} stroke="var(--line)" />
 
@@ -312,24 +314,25 @@ export function PriceCurve({ prices, p10, p50, p90, tip, height = 150 }) {
 
         {marks.map(([label, v]) => (
           <text key={`t${label}`} x={xOf(v)} y={pad.t - 12} textAnchor="middle" className="tnum"
-            style={{ fontSize: 9, fill: label === 'median' ? 'var(--ink-2)' : 'var(--ink-4)' }}>
+            style={{ fontSize: 'var(--text-xs)', fill: label === 'median' ? 'var(--ink-2)' : 'var(--ink-4)' }}>
             {label === 'median' ? `median ${n0(v)}` : label}
           </text>
         ))}
 
         {ticks.map((v) => (
           <text key={v} x={xOf(v)} y={H - pad.b + 13} textAnchor="middle" className="tnum"
-            style={{ fontSize: 9 }}>{tickLabel(v)}</text>
+            style={{ fontSize: 'var(--text-xs)' }}>{tickLabel(v)}</text>
         ))}
 
         {/* Say so when the axis is trimmed, rather than hiding the tail. */}
         {(below + above) > 0 && (
           <text x={W - pad.r} y={H - pad.b + 13} textAnchor="end"
-            style={{ fontSize: 8.5, fill: 'var(--ink-4)' }}>
+            style={{ fontSize: 'var(--text-xs)', fill: 'var(--ink-4)' }}>
             {n0(below + above)} outside range
           </text>
         )}
       </svg>
+      <details className="data-alternative"><summary>Read price distribution</summary><table><thead><tr><th>KES range</th><th>Products</th></tr></thead><tbody>{Array.from(bins).map((n, index) => <tr key={index}><td>{n0(10 ** (lo + index / BUCKETS * span))}–{n0(10 ** (lo + (index + 1) / BUCKETS * span))}</td><td>{n0(n)}</td></tr>)}</tbody></table><p>{n0(below)} below displayed range; {n0(above)} above it. Median KES {n0(p50)}.</p></details>
     </div>
   );
 }
@@ -374,7 +377,7 @@ export function CoveragePlot({ store, rows, tip, onPick, height = 250 }) {
 
   return (
     <div ref={ref} style={{ width: '100%' }}>
-    <svg className="chart" width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+    <svg role="group" aria-label="Product coverage by number of sources listing and reporting in stock" className="chart" width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
       <line className="gridline" x1={x(0)} y1={y(0)} x2={x(maxN)} y2={y(maxN)} strokeDasharray="3 3" />
       {ticks.map((v) => (
         <g key={v}>
@@ -389,9 +392,12 @@ export function CoveragePlot({ store, rows, tip, onPick, height = 250 }) {
         return (
           <circle
             key={`${c.listed}-${c.inStock}`} className="mark"
+            role={onPick ? "button" : "img"} tabIndex={onPick ? 0 : undefined}
+            aria-label={`${n0(c.n)} products: ${c.listed} sources listing, ${c.inStock} in stock`}
+            onKeyDown={(event) => { if (onPick && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onPick(c.listed); } }}
             cx={x(c.listed)} cy={y(c.inStock)} r={r}
             fill={short === 0 ? 'var(--in)' : short >= 3 ? 'var(--out)' : 'var(--ramp-4)'}
-            fillOpacity={0.45} stroke="var(--surface)" strokeWidth={0.5}
+            fillOpacity={0.85} stroke="var(--surface)" strokeWidth={0.5}
             style={{ cursor: 'pointer' }}
             onClick={() => onPick?.(c.listed)}
             onMouseMove={(e) => tip.show(e, (
@@ -402,12 +408,13 @@ export function CoveragePlot({ store, rows, tip, onPick, height = 250 }) {
           />
         );
       })}
-      <text x={(pad.l + W - pad.r) / 2} y={H - 4} textAnchor="middle" style={{ fontSize: 9.5 }}>
+      <text x={(pad.l + W - pad.r) / 2} y={H - 4} textAnchor="middle" style={{ fontSize: 'var(--text-xs)' }}>
         pharmacies listing
       </text>
       <text transform={`rotate(-90) translate(${-(pad.t + H - pad.b) / 2} 10)`} textAnchor="middle"
-        style={{ fontSize: 9.5 }}>in stock</text>
+        style={{ fontSize: 'var(--text-xs)' }}>in stock</text>
     </svg>
+    <details className="data-alternative"><summary>Read coverage data</summary><table><thead><tr><th>Sources listing</th><th>In stock</th><th>Products</th></tr></thead><tbody>{all.map(c => <tr key={`${c.listed}-${c.inStock}`}><td>{c.listed}</td><td>{c.inStock}</td><td>{n0(c.n)}</td></tr>)}</tbody></table></details>
     </div>
   );
 }
@@ -446,7 +453,7 @@ export function Matrix({ store, rows, limit = 40, tip, onPick }) {
               <div style={{
                 position: 'absolute', bottom: 4, left: '50%',
                 transformOrigin: 'left bottom', transform: 'rotate(-58deg)',
-                fontSize: 10, whiteSpace: 'nowrap',
+                fontSize: 'var(--text-xs)', whiteSpace: 'nowrap',
                 color: s.publishes_oos ? 'var(--ink-2)' : 'var(--ink-4)',
               }}>
                 {s.name}{!s.publishes_oos && ' *'}
@@ -457,11 +464,13 @@ export function Matrix({ store, rows, limit = 40, tip, onPick }) {
         {slice.map((i) => (
           <div
             key={P.key[i]}
-            style={{ display: 'flex', alignItems: 'center', height: 20, cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', minHeight: 44, cursor: 'pointer' }}
             onClick={() => onPick?.(i)}
-            className="matrix-row"
+            className="matrix-row" role="button" tabIndex={0}
+            aria-label={`Open ${P.name[i]}: ${shops.map(s => { const bit = 1 << s.bit; return `${s.name}: ${!(P.listedMask[i] & bit) ? "not listed" : P.oosMask[i] & bit ? "out of stock" : P.inMask[i] & bit ? "in stock" : "no stock signal"}`; }).join("; ")}`}
+            onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onPick?.(i); } }}
           >
-            <div className="trunc" style={{ width: labelW, paddingRight: 10, fontSize: 11.5 }}>
+            <div className="trunc" style={{ width: labelW, paddingRight: 10, fontSize: 'var(--text-xs)' }}>
               {P.name[i]}
             </div>
             {shops.map((s) => {
@@ -526,7 +535,7 @@ export function BandSteps({ counts, labels, tip, onPick, selected }) {
             style={{
               display: 'grid', gridTemplateColumns: '62px 30px 1fr 52px',
               alignItems: 'center', gap: 8, padding: '3px 0', textAlign: 'left',
-              opacity: selected?.length && d.i >= 0 && !selected.includes(d.i) ? 0.35 : 1,
+              opacity: 1,
               cursor: dim ? 'default' : 'pointer',
             }}
             onMouseMove={(e) => tip.show(e, (
@@ -535,8 +544,8 @@ export function BandSteps({ counts, labels, tip, onPick, selected }) {
             ))}
             onMouseLeave={tip.hide}
           >
-            <span style={{ fontSize: 11, color: dim ? 'var(--ink-4)' : 'var(--ink-2)' }}>{d.name}</span>
-            <span className="num" style={{ fontSize: 9.5, color: 'var(--ink-4)' }}>{d.range}</span>
+            <span style={{ fontSize: 'var(--text-xs)', color: dim ? 'var(--ink-4)' : 'var(--ink-2)' }}>{d.name}</span>
+            <span className="num" style={{ fontSize: 'var(--text-xs)', color: 'var(--ink-4)' }}>{d.range}</span>
             <span style={{ position: 'relative', height: 3, background: 'var(--line-faint)', borderRadius: 2 }}>
               <span style={{
                 position: 'absolute', inset: 0, width: `${w}%`,
@@ -551,7 +560,7 @@ export function BandSteps({ counts, labels, tip, onPick, selected }) {
               )}
             </span>
             <span className="num" style={{
-              fontSize: 11, textAlign: 'right', color: dim ? 'var(--ink-4)' : undefined,
+              fontSize: 'var(--text-xs)', textAlign: 'right', color: dim ? 'var(--ink-4)' : undefined,
             }}>{d.n ? n0(d.n) : '—'}</span>
           </button>
         );
@@ -571,8 +580,8 @@ export function LinkageBars({ items, tip }) {
           onMouseLeave={() => tip?.hide()}
         >
           <div className="row" style={{ marginBottom: 3 }}>
-            <span style={{ fontSize: 11.5, color: 'var(--ink-2)' }}>{it.label}</span>
-            <span className="spacer num" style={{ fontSize: 11 }}>
+            <span style={{ fontSize: 'var(--text-xs)', color: 'var(--ink-2)' }}>{it.label}</span>
+            <span className="spacer num" style={{ fontSize: 'var(--text-xs)' }}>
               {it.value == null ? '—' : `${(100 * it.value).toFixed(0)}%`}
             </span>
           </div>
@@ -619,7 +628,7 @@ export function ConfidenceArc({ counts, labels, tip, size }) {
 
   return (
     <div ref={ref} style={{ width: '100%' }}>
-      <svg className="chart" width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ margin: '0 auto' }}>
+      <svg role="img" aria-label={`Match confidence: ${labels.map((label, i) => `${label} ${n0(counts[i])}`).join(", ")}`} className="chart" width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ margin: '0 auto' }}>
         <path d={`M ${C - R} ${C} A ${R} ${R} 0 0 1 ${C + R} ${C}`}
           fill="none" stroke="var(--surface-sunk)" strokeWidth={stroke} strokeLinecap="round" />
         {labels.map((label, i) => {
@@ -643,10 +652,10 @@ export function ConfidenceArc({ counts, labels, tip, size }) {
           return el;
         })}
         <text x={C} y={C - 8} textAnchor="middle" className="tnum"
-          style={{ fontSize: 23, fill: 'var(--ink)', letterSpacing: '-0.03em' }}>
+          style={{ fontSize: 'var(--text-metric)', fill: 'var(--ink)', letterSpacing: '-0.03em' }}>
           {((100 * top.n) / total).toFixed(1)}%
         </text>
-        <text x={C} y={C + 7} textAnchor="middle" style={{ fontSize: 10, fill: 'var(--ink-3)' }}>
+        <text x={C} y={C + 7} textAnchor="middle" style={{ fontSize: 'var(--text-xs)', fill: 'var(--ink-3)' }}>
           {top.label} confidence
         </text>
       </svg>
@@ -656,7 +665,7 @@ export function ConfidenceArc({ counts, labels, tip, size }) {
         gap: '4px 16px', marginTop: 10,
       }}>
         {labels.map((label, i) => (counts[i] ? (
-          <span key={label} className="row" style={{ fontSize: 11, gap: 6 }}>
+          <span key={label} className="row" style={{ fontSize: 'var(--text-xs)', gap: 6 }}>
             <i style={{
               width: 8, height: 8, borderRadius: 2, display: 'block',
               background: TONE[label] ?? 'var(--ramp-2)',
