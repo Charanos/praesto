@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="800" viewBox="0 0 1240 800" font-family="Inter, Helvetica, Arial, sans-serif">
+<rect width="1240" height="800" fill="#f4f4f1"/>
+
+<defs>
+<clipPath id="bl"><rect x="0" y="0" width="73" height="120"/></clipPath>
+<clipPath id="br"><rect x="79" y="0" width="41" height="120"/></clipPath>
+<clipPath id="cl"><rect x="0" y="0" width="57.5" height="120"/></clipPath>
+<clipPath id="cr"><rect x="62.5" y="0" width="57.5" height="120"/></clipPath>
+
+<symbol id="A" viewBox="0 0 120 120">
+  <rect x="16" y="14" width="20" height="92" rx="10" fill="currentColor"/>
+  <circle cx="72" cy="45" r="26" fill="none" stroke="currentColor" stroke-width="10"/>
+  <circle cx="72" cy="45" r="8" style="fill:var(--dot,currentColor)"/>
+</symbol>
+
+<symbol id="B" viewBox="0 0 120 120">
+  <rect x="14" y="14" width="20" height="92" rx="10" fill="currentColor"/>
+  <g transform="translate(-4 0)">
+    <circle cx="78" cy="45" r="31" fill="currentColor" clip-path="url(#bl)"/>
+    <circle cx="78" cy="45" r="26.5" fill="none" stroke="currentColor" stroke-width="9" clip-path="url(#br)"/>
+    <circle cx="92" cy="45" r="6" style="fill:var(--dot,currentColor)" transform="translate(-4 0)"/>
+  </g>
+</symbol>
+
+<symbol id="C" viewBox="0 0 120 120">
+  <g transform="rotate(-45 60 60)">
+    <rect x="6" y="36" width="108" height="48" rx="24" fill="currentColor" clip-path="url(#cl)"/>
+    <rect x="10" y="40" width="100" height="40" rx="20" fill="none" stroke="currentColor" stroke-width="8" clip-path="url(#cr)"/>
+    <circle cx="88" cy="60" r="10" fill="none" stroke="currentColor" stroke-width="4.5"/>
+    <circle cx="88" cy="60" r="3.6" style="fill:var(--dot,currentColor)"/>
+  </g>
+</symbol>
+
+<symbol id="D" viewBox="0 0 120 120">
+  <rect x="16" y="14" width="20" height="92" rx="10" fill="currentColor"/>
+  <path d="M49.57 53.89 A26 26 0 1 1 69.49 70.6" transform="translate(-2 0)" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="72" cy="45" r="8" style="fill:var(--dot,currentColor)" transform="translate(-2 0)"/>
+</symbol>
+</defs>
+<text x="40" y="52" font-size="22" font-weight="600" fill="#17191d" letter-spacing="-0.4">praesto  ·  pill-split P × locator ring</text>
+<text x="40" y="72" font-size="13" fill="#6b6e75">Four ways to merge the capsule P with the locator ring. Green dot = the in-stock signal.</text>
+<rect x="40" y="90" width="275" height="260" rx="20" fill="#fff" stroke="#e4e4e0"/>
+<use href="#A" x="102.5" y="145" width="150" height="150" color="#17191d" style="--dot:#0a8f5a"/>
+<rect x="40" y="370" width="275" height="150" rx="20" fill="#17191d"/>
+<use href="#A" x="66" y="414" width="62" height="62" color="#fff" style="--dot:#3ddc97"/>
+<text x="140" y="458" font-size="30" font-weight="600" fill="#fff" letter-spacing="-0.8">praesto</text>
+<rect x="40" y="540" width="275" height="150" rx="20" fill="#fff" stroke="#e4e4e0"/>
+<use href="#A" x="66" y="560" width="52" height="52" color="#17191d" style="--dot:#0a8f5a"/>
+<text x="130" y="596" font-size="28" font-weight="600" fill="#17191d" letter-spacing="-0.8">praesto</text>
+<use href="#A" x="66" y="648" width="32" height="32" color="#17191d" style="--dot:#0a8f5a"/>
+<use href="#A" x="120" y="648" width="24" height="24" color="#17191d" style="--dot:#0a8f5a"/>
+<use href="#A" x="162" y="648" width="16" height="16" color="#17191d" style="--dot:#0a8f5a"/>
+<text x="190" y="668" font-size="11" fill="#8a8d94">32 / 24 / 16 px</text>
+<text x="44" y="722" font-size="15" font-weight="600" fill="#17191d">A · Capsule + target</text>
+<text x="44" y="742" font-size="12" fill="#6b6e75">Capsule stem, ring bowl, presence dot</text>
+<rect x="335" y="90" width="275" height="260" rx="20" fill="#fff" stroke="#e4e4e0"/>
+<use href="#B" x="397.5" y="145" width="150" height="150" color="#17191d" style="--dot:#0a8f5a"/>
+<rect x="335" y="370" width="275" height="150" rx="20" fill="#17191d"/>
+<use href="#B" x="361" y="414" width="62" height="62" color="#fff" style="--dot:#3ddc97"/>
+<text x="435" y="458" font-size="30" font-weight="600" fill="#fff" letter-spacing="-0.8">praesto</text>
+<rect x="335" y="540" width="275" height="150" rx="20" fill="#fff" stroke="#e4e4e0"/>
+<use href="#B" x="361" y="560" width="52" height="52" color="#17191d" style="--dot:#0a8f5a"/>
+<text x="425" y="596" font-size="28" font-weight="600" fill="#17191d" letter-spacing="-0.8">praesto</text>
+<use href="#B" x="361" y="648" width="32" height="32" color="#17191d" style="--dot:#0a8f5a"/>
+<use href="#B" x="415" y="648" width="24" height="24" color="#17191d" style="--dot:#0a8f5a"/>
+<use href="#B" x="457" y="648" width="16" height="16" color="#17191d" style="--dot:#0a8f5a"/>
+<text x="485" y="668" font-size="11" fill="#8a8d94">32 / 24 / 16 px</text>
+<text x="339" y="722" font-size="15" font-weight="600" fill="#17191d">B · Split-pill bowl</text>
+<text x="339" y="742" font-size="12" fill="#6b6e75">Half-solid, half-ring bowl, hairline split</text>
+<rect x="630" y="90" width="275" height="260" rx="20" fill="#fff" stroke="#e4e4e0"/>
+<use href="#C" x="692.5" y="145" width="150" height="150" color="#17191d" style="--dot:#0a8f5a"/>
+<rect x="630" y="370" width="275" height="150" rx="20" fill="#17191d"/>
+<use href="#C" x="656" y="414" width="62" height="62" color="#fff" style="--dot:#3ddc97"/>
+<text x="730" y="458" font-size="30" font-weight="600" fill="#fff" letter-spacing="-0.8">praesto</text>
+<rect x="630" y="540" width="275" height="150" rx="20" fill="#fff" stroke="#e4e4e0"/>
+<use href="#C" x="656" y="560" width="52" height="52" color="#17191d" style="--dot:#0a8f5a"/>
+<text x="720" y="596" font-size="28" font-weight="600" fill="#17191d" letter-spacing="-0.8">praesto</text>
+<use href="#C" x="656" y="648" width="32" height="32" color="#17191d" style="--dot:#0a8f5a"/>
+<use href="#C" x="710" y="648" width="24" height="24" color="#17191d" style="--dot:#0a8f5a"/>
+<use href="#C" x="752" y="648" width="16" height="16" color="#17191d" style="--dot:#0a8f5a"/>
+<text x="780" y="668" font-size="11" fill="#8a8d94">32 / 24 / 16 px</text>
+<text x="634" y="722" font-size="15" font-weight="600" fill="#17191d">C · Pill with locator</text>
+<text x="634" y="742" font-size="12" fill="#6b6e75">Diagonal capsule: one half solid, one a target</text>
+<rect x="925" y="90" width="275" height="260" rx="20" fill="#fff" stroke="#e4e4e0"/>
+<use href="#D" x="987.5" y="145" width="150" height="150" color="#17191d" style="--dot:#0a8f5a"/>
+<rect x="925" y="370" width="275" height="150" rx="20" fill="#17191d"/>
+<use href="#D" x="951" y="414" width="62" height="62" color="#fff" style="--dot:#3ddc97"/>
+<text x="1025" y="458" font-size="30" font-weight="600" fill="#fff" letter-spacing="-0.8">praesto</text>
+<rect x="925" y="540" width="275" height="150" rx="20" fill="#fff" stroke="#e4e4e0"/>
+<use href="#D" x="951" y="560" width="52" height="52" color="#17191d" style="--dot:#0a8f5a"/>
+<text x="1015" y="596" font-size="28" font-weight="600" fill="#17191d" letter-spacing="-0.8">praesto</text>
+<use href="#D" x="951" y="648" width="32" height="32" color="#17191d" style="--dot:#0a8f5a"/>
+<use href="#D" x="1005" y="648" width="24" height="24" color="#17191d" style="--dot:#0a8f5a"/>
+<use href="#D" x="1047" y="648" width="16" height="16" color="#17191d" style="--dot:#0a8f5a"/>
+<text x="1075" y="668" font-size="11" fill="#8a8d94">32 / 24 / 16 px</text>
+<text x="929" y="722" font-size="15" font-weight="600" fill="#17191d">D · Open scan ring</text>
+<text x="929" y="742" font-size="12" fill="#6b6e75">Capsule stem, open ring, dot at center</text>
+</svg>

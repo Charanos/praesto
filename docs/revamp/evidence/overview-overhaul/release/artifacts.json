@@ -1,0 +1,216 @@
+{
+  "origin": "https://praesto-inky.vercel.app",
+  "verified": 30,
+  "checks": [
+    {
+      "file": "index.html",
+      "status": 200,
+      "bytes": 2227,
+      "sha256": "47373a508014982adee6fe6227a7594337965175cbc9aeb59ca254b060b817bf",
+      "robotsHeader": null
+    },
+    {
+      "file": "app/meta.json",
+      "status": 200,
+      "bytes": 167548,
+      "sha256": "02952152a6c2e0b46af0ba221579cef7e30a21221cdbea413090a693ef7b3699",
+      "robotsHeader": null
+    },
+    {
+      "file": "app/products.json",
+      "status": 200,
+      "bytes": 7700214,
+      "sha256": "e84fe54e3b05f9bf22c9f5ba927b112fe84be5687ab610c5c99498b1f073d9c0",
+      "robotsHeader": null
+    },
+    {
+      "file": "app/listings.json",
+      "status": 200,
+      "bytes": 5784549,
+      "sha256": "11d21354a7ff68911e2acba8b8e480f30f842b010589e67c3dd9fe332c7f9414",
+      "robotsHeader": null
+    },
+    {
+      "file": "favicon.svg",
+      "status": 200,
+      "bytes": 702,
+      "sha256": "57de16e16b2d47a1fbd8ba7f0239d577b507319eb5697038bfcf67f0924f1d92",
+      "robotsHeader": null
+    },
+    {
+      "file": "favicon.ico",
+      "status": 200,
+      "bytes": 2197,
+      "sha256": "3fabc144c68db8417f8265d8e7293b2547281555803f85a22741c77081ba911a",
+      "robotsHeader": null
+    },
+    {
+      "file": "apple-touch-icon.png",
+      "status": 200,
+      "bytes": 2556,
+      "sha256": "b66e4437a7edfd007669828a5b55e52fb898bb2af0ad6e2e398e9fc84864e806",
+      "robotsHeader": null
+    },
+    {
+      "file": "robots.txt",
+      "status": 200,
+      "bytes": 39,
+      "sha256": "17f15a556bbe026640db462476659d39c78639a926c6cc93410b3ce3ad710878",
+      "robotsHeader": null
+    },
+    {
+      "file": "about.html",
+      "status": 200,
+      "bytes": 3389,
+      "sha256": "792cc50c2f5e76153dad0a02a1c2b3e9895d3eeb9bf3f3629b5e842dc0d6d6bb",
+      "robotsHeader": null
+    },
+    {
+      "file": "brand/praesto/praesto-b-favicon-light.svg",
+      "status": 200,
+      "bytes": 608,
+      "sha256": "7d0e0e3b7aa71d68c316bac0c19ae844f80403dd60eb39b1d3f16f887231a3de",
+      "robotsHeader": null
+    },
+    {
+      "file": "brand/praesto/praesto-b-favicon-dark.svg",
+      "status": 200,
+      "bytes": 607,
+      "sha256": "a419fd0a613e5cb920a840e58c3fd9fc2a13b63f4f4dbd43ea8f074706d0edb8",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/BarChart-BqUu1OA1.js",
+      "status": 200,
+      "bytes": 358703,
+      "sha256": "7105b80f9934f420e929faa4eac21d432a0cc0bd9274b9dffbd21b30eaf9ce1b",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/Catalogue-CgbG0W32.js",
+      "status": 200,
+      "bytes": 46556,
+      "sha256": "6be2d3dc0a0aed324f672689fcdf5be9d40328ce8aceb1d457b8cac9934adadd",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/Catalogue-Rk6r0niW.css",
+      "status": 200,
+      "bytes": 7618,
+      "sha256": "b2eca0680557a08ca454a2877e087fa78a6884318b270f893851d339c8e7d861",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/CatalogueAnalytics-DgfjQ4Ge.js",
+      "status": 200,
+      "bytes": 6954,
+      "sha256": "ccabc382651eb451c869609b00f2c6111173fe36cf77be5c96e3c561bd59e9c3",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/index-bC4EPtEU.js",
+      "status": 200,
+      "bytes": 261411,
+      "sha256": "357c2174456d279ebf41f1c4119a6aad19c782674c46c7d310b93d3017f632bc",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/index-C8hvpRfp.css",
+      "status": 200,
+      "bytes": 117406,
+      "sha256": "f0ab3984df794daf4f34da9e2684cadf6d95eb4a9ac36cb874bb5e37057a177d",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/Overview-DuZKaJJj.js",
+      "status": 200,
+      "bytes": 38364,
+      "sha256": "27b74f00c60fc154a5d49428ed9c3082008543033006412142aa0ffa32bae3e6",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/Overview-Lxo4PCmZ.css",
+      "status": 200,
+      "bytes": 47367,
+      "sha256": "fa392a16fff2ee7a4ea6d085cba21670e3383ab009cada4e4c101216c3264160",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/OverviewVisuals-BuyIFk4b.js",
+      "status": 200,
+      "bytes": 40497,
+      "sha256": "08408ea013a03eb0697bca6074936b374ef26e42a5be9618f3944bc77407062e",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/PharmacyGlyph-CtdRv-57.css",
+      "status": 200,
+      "bytes": 3940,
+      "sha256": "cea788de160fa936f5bfc643a8e2bae35766025563130e7781178832b7093024",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/PharmacyGlyph-kdYlKT9m.js",
+      "status": 200,
+      "bytes": 3534,
+      "sha256": "f79be6a270659c706ceeebfe30b81edff3876aa7142fb8c37ec507cdd06a2554",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/Quality-CdAgVJQF.js",
+      "status": 200,
+      "bytes": 16772,
+      "sha256": "421e0325228e60079eb05bc38f88e0ccf016c09cde4cb9c1523376b245ee1f1e",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/Quality-CMgUQK27.css",
+      "status": 200,
+      "bytes": 14697,
+      "sha256": "a14973c5a355594436d35383260240eadb1369fa009396ca0a647ecbf2fceed9",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/SelectField-C8KV7ii6.css",
+      "status": 200,
+      "bytes": 2352,
+      "sha256": "86deba379ac61629c416995d09a17eb49b12090940624cc1ff1bc47f81db071d",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/SelectField-DpPzDaLe.js",
+      "status": 200,
+      "bytes": 89366,
+      "sha256": "625a6d9b3d6d428eeed0d04d4e406537016b160049a20d0e5677d1fbe14fea46",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/SourceBalanceVisual-B3VIZZmI.js",
+      "status": 200,
+      "bytes": 1464,
+      "sha256": "f297aa6b68390bb7110addc47053e7377c56df5524bd04652a8cd8b7daf00770",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/Sources-Dah2lheE.css",
+      "status": 200,
+      "bytes": 12803,
+      "sha256": "a0ed1e25de5db04f568d77387727a8a3d2869fca0fb2bd1dce8a9c4df464dd21",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/Sources-DNhmV3A2.js",
+      "status": 200,
+      "bytes": 15462,
+      "sha256": "3e89c17fcab3f14cc608acb9faa39bcf8c221b7ed4199ead855bf067f26d2f2b",
+      "robotsHeader": null
+    },
+    {
+      "file": "assets/store.worker-CV4MJ6uX.js",
+      "status": 200,
+      "bytes": 10925,
+      "sha256": "d04c0ec2c10ed98f88a50f43ab92299cf90e8de9488a4b27f6c3772eb8fdf440",
+      "robotsHeader": null
+    }
+  ]
+}
