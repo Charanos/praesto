@@ -10,6 +10,9 @@
   --text-muted-on-inverse: #b8c0cc;
   --surface-inverse-hover: #272b32;
   --surface-inverse-selected: #30353d;
+  --launcher-surface: var(--surface-inverse);
+  --launcher-line: var(--border-on-inverse);
+  --launcher-shadow: inset 0 1px 0 #ffffff14, 0 4px 14px #17191d30;
   --rail: #ffffff;
   --rail-ink: #17191d;
   --rail-ink-dim: #59616d;

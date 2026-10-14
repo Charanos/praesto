@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Modal from '../components/Modal';
+import { Icon, glyphs } from '../components/icons';
 export default function DesignSystem() {
   const [open, setOpen] = useState(false);
   return <div className="page">
@@ -15,6 +16,7 @@ export default function DesignSystem() {
       <p className="notice">Inferred collection date · clinical revision date unknown.</p>
       <div className="feedback"><p>Example recovery state: source listings could not load.</p><button className="btn">Retry source listings</button></div>
     </section>
+    <section className="section"><h2 className="section-title">Shared glyphs</h2><p className="sub">Original geometry on a 24-unit grid. Icons clarify navigation and actions; labels carry meaning.</p><div className="glyph-specimens">{Object.keys(glyphs).map(name => <div key={name}><span className="glyph-specimen-icon"><Icon name={name} size={24} /></span><span>{name}</span></div>)}</div></section>
     <section className="section"><h2 className="section-title">Reading hierarchy</h2><p className="reader-text">Product names, source-level stock evidence and KES prices lead the page. Reference text uses a comfortable reading measure and preserves missing fields as unknown.</p></section>
     {open && <Modal className="drawer" labelledBy="sample-dialog-title" onClose={() => setOpen(false)}><header className="drawer-head"><h2 id="sample-dialog-title">Product detail example</h2><button className="btn" onClick={() => setOpen(false)}>Close dialog</button></header><div className="drawer-body"><p className="reader-text">Keyboard focus stays inside this dialog. Escape closes it and returns focus to its trigger.</p></div></Modal>}
   </div>;

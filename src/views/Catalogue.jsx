@@ -634,7 +634,7 @@ function Detail({ store, i, onClose, onPick, tip }) {
               {listings?.map((listing, key) => <li className="source-observation" key={key}>
                 <div className="observation-identity"><h4>{listing.shop.name}</h4><span className="observation-name">{listing.rawName}</span></div>
                 <div className="observation-evidence"><StateTag state={listing.state} /><span className="observation-price num">{kes(listing.price)}</span></div>
-                {listing.url && /^https?:\/\//i.test(listing.url) && <a className="btn observation-link" href={listing.url} target="_blank" rel="noopener noreferrer" aria-label={`View listing at ${listing.shop.name}`}>View listing <Icon name="link" size={14} /></a>}
+                {listing.url && /^https?:\/\//i.test(listing.url) && <a className="btn observation-link" href={listing.url} target="_blank" rel="noopener noreferrer" aria-label={`View listing at ${listing.shop.name}`}>View listing <Icon name="external" size={14} /></a>}
               </li>)}
             </ul>
           )}

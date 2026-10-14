@@ -11,7 +11,7 @@ The dashboard is a white, editorial workspace. Product identity and source evide
 | Bounded ink sidebar, white reading surfaces, selected dark actions | Contrast defines the workspace without turning the main reading canvas dark. |
 | 14px body; 12px secondary; restrained display headings | Dense data remains readable without giving every number equal emphasis. |
 | Compact 36px desktop controls; 44px mobile/coarse targets; 56px catalogue rows | Touch targets and product names need space; virtual rendering keeps density affordable. |
-| Mobile navigation retains labels; search occupies a full row | Users can identify destinations and type without losing the query to metadata. |
+| Phone navigation collapses to a dark bottom-right launcher; expanded actions retain labels | The dashboard keeps its canvas while destinations remain recognizable. Search occupies a full row. |
 | Mobile facets use a modal with a result-count action | Filters stay available without consuming the result viewport. |
 | Native modal dialog, Escape and focus return | Browser focus containment prevents interaction behind overlays. |
 | Stock text and source-level detail accompany barcodes | Color is supplemental evidence, never the only way to read stock. |
@@ -39,7 +39,7 @@ The development-only `?v=design` catalogue demonstrates the system. `?audit=1` e
 
 ## Breakpoints and content
 
-Desktop uses a 220px navigation region with an inset ink sidebar, flexible main region and a 252px facet rail. At 1100px the sidebar becomes a compact labeled horizontal navigation bar. At 760px the header wraps, filters become a modal, grid columns condense to product/evidence, and chart sections stack. At 320px content reflows; intrinsically two-dimensional tables/matrices scroll inside labeled regions. Do not hide a workflow to fit a breakpoint.
+Desktop uses a 220px navigation region with an inset ink sidebar, flexible main region and a 252px facet rail. At 1100px the sidebar becomes a compact labeled horizontal navigation bar. At 760px navigation becomes a 52px bottom-right launcher, dark in both collapsed and expanded states. Four labeled floating actions expand upward; selection, outside click, focus leaving the group and Escape close it. Escape and selection return focus to the launcher; arrow/Home/End keys move between destinations. Safe-area offsets and content padding keep the final rows reachable. The header wraps, filters become a modal, grid columns condense to product/evidence, and chart sections stack. At 320px content reflows; intrinsically two-dimensional tables/matrices scroll inside labeled regions. Do not hide a workflow to fit a breakpoint.
 
 Primary actions are ink on white with a white inverse foreground. Blue identifies links/focus; green/red/ochre encode evidence. All text tokens target >=4.5:1 on their intended light surfaces. Charts may use lighter fills with direct labels and data alternatives. Motion is brief and honors reduced motion. No decorative gradients or glass surfaces.
 
@@ -58,3 +58,7 @@ Track milestone completion and evidence in [PROJECT_TRACKER.md](PROJECT_TRACKER.
 ## Accent expansion
 
 Deep teal anchors actions and the availability summary; cobalt supports source and matching information; amber denotes caution; coral supports stockout/absence context. Botanical and berry tones extend categorical chart marks. Every family has an explicit strong/soft pairing in `tokens.css`. Stock-status meaning stays stable, while category marks always retain labels/counts. Pale fills provide grouping without adding heavy card borders or decoration. Inverse sidebar colors have their own readable foreground tokens.
+
+## Glyph direction for subsequent sections
+
+`src/components/icons.tsx` is the single reusable original glyph set: a 24-unit optical grid, 1.65-unit strokes, rounded joins/caps and consistent margins. Use the collapsed launcher's restrained four-cell glyph as the quality reference for later section work. Soft squared containers belong to navigation and selected controls; ordinary inline actions use the bare glyph. Avoid filling every heading or data label with an icon. Pharmaceutical, evidence, reading and navigation symbols share the same construction. Decorative SVGs are hidden from assistive technology; icon-only controls carry explicit accessible names. The development catalogue includes every glyph for visual comparison. These are original SVGs, with no dependency on Apple's platform assets.

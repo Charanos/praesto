@@ -48,10 +48,13 @@ export function clinicalEndpoint(): string | null {
   const configured = import.meta.env.VITE_CLINICAL_REFERENCE_URL as string | undefined;
   if (configured) {
     // Same-origin paths keep keys and licensing enforcement on the server.
-    if (!configured.startsWith('/') || configured.startsWith('//') || configured.includes('?') || configured.includes('#')) return null;
-    return configured;
+    return validateClinicalPath(configured);
   }
   return import.meta.env.DEV ? '/__local-reference' : null;
+}
+export function validateClinicalPath(path: string): string | null {
+  if (!path.startsWith('/') || path.startsWith('//') || /[\\\s?#]/.test(path)) return null;
+  return path;
 }
 export async function loadClinicalRecord(ingredient: string, signal: AbortSignal): Promise<ClinicalRecord | null> {
   const endpoint = clinicalEndpoint();

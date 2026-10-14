@@ -10,7 +10,7 @@ const luminance=(hex)=>{
 };
 const ratio=(a,b)=>{const x=luminance(color(a)),y=luminance(color(b));return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);};
 test('semantic text and accent pairs meet normal-text AA contrast',()=>{
-  const pairs=[['--ink','--surface'],['--ink-2','--surface'],['--ink-3','--surface-sunk'],['--ink-4','--surface-sunk'],['--accent','--accent-soft'],['--in','--in-soft'],['--out','--out-soft'],['--warn','--warn-soft'],['--teal','--teal-soft'],['--teal-strong','--teal-soft'],['--cobalt','--cobalt-soft'],['--coral','--coral-soft'],['--botanical','--botanical-soft'],['--berry','--berry-soft'],['--text-on-inverse','--surface-inverse'],['--text-muted-on-inverse','--surface-inverse'],['--text-muted-on-inverse','--surface-inverse-selected'],['--text-on-inverse','--surface-inverse-selected']];
+  const pairs=[['--text-on-inverse','--launcher-surface'],['--ink','--surface'],['--ink-2','--surface'],['--ink-3','--surface-sunk'],['--ink-4','--surface-sunk'],['--accent','--accent-soft'],['--in','--in-soft'],['--out','--out-soft'],['--warn','--warn-soft'],['--teal','--teal-soft'],['--teal-strong','--teal-soft'],['--cobalt','--cobalt-soft'],['--coral','--coral-soft'],['--botanical','--botanical-soft'],['--berry','--berry-soft'],['--text-on-inverse','--surface-inverse'],['--text-muted-on-inverse','--surface-inverse'],['--text-muted-on-inverse','--surface-inverse-selected'],['--text-on-inverse','--surface-inverse-selected']];
   for(const [foreground,background] of pairs){const value=ratio(foreground,background);assert.ok(value>=4.5,`${foreground}/${background}: ${value.toFixed(2)}`);}
   console.log('Contrast pairs:',pairs.map(([a,b])=>`${a}/${b} ${ratio(a,b).toFixed(2)}:1`).join('; '));
 });

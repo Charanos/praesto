@@ -1,0 +1,34 @@
+[
+  {
+    "view": "overview",
+    "dialog": false,
+    "h1": "Pharmacy availability, in context.",
+    "main": 320,
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "view": "catalogue",
+    "dialog": false,
+    "h1": "Find & compare",
+    "main": 320,
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "view": "sources",
+    "dialog": false,
+    "h1": "Sources",
+    "main": 320,
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "view": "quality",
+    "dialog": false,
+    "h1": "Data quality",
+    "main": 320,
+    "scroll": 320,
+    "width": 320
+  }
+]

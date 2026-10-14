@@ -1,0 +1,23 @@
+{
+  "width": 375,
+  "placement": {
+    "background": "rgb(23, 25, 29)",
+    "bottom": 16,
+    "color": "rgb(255, 255, 255)",
+    "height": 900,
+    "right": 15.79998779296875,
+    "targetHeight": 52,
+    "targetWidth": 52,
+    "width": 375
+  },
+  "passed": [
+    "collapsed dark surface",
+    "bottom right",
+    "hidden destinations when collapsed",
+    "current destination focus",
+    "Home/End/arrows",
+    "Escape restores focus",
+    "outside click",
+    "route selection closes"
+  ]
+}

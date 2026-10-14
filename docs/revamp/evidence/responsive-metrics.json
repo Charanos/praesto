@@ -1,0 +1,130 @@
+[
+  {
+    "view": "overview",
+    "dialog": false,
+    "h1": "Pharmacy availability, in context.",
+    "main": 768,
+    "scroll": 768,
+    "width": 768
+  },
+  {
+    "view": "catalogue",
+    "dialog": false,
+    "h1": "Find & compare",
+    "main": 768,
+    "scroll": 768,
+    "width": 768
+  },
+  {
+    "view": "sources",
+    "dialog": false,
+    "h1": "Sources",
+    "main": 768,
+    "scroll": 768,
+    "width": 768
+  },
+  {
+    "view": "quality",
+    "dialog": false,
+    "h1": "Data quality",
+    "main": 768,
+    "scroll": 768,
+    "width": 768
+  },
+  {
+    "view": "overview",
+    "dialog": false,
+    "h1": "Pharmacy availability, in context.",
+    "main": 1060,
+    "scroll": 1280,
+    "width": 1280
+  },
+  {
+    "view": "catalogue",
+    "dialog": false,
+    "h1": "Find & compare",
+    "main": 1060,
+    "scroll": 1280,
+    "width": 1280
+  },
+  {
+    "view": "sources",
+    "dialog": false,
+    "h1": "Sources",
+    "main": 1060,
+    "scroll": 1280,
+    "width": 1280
+  },
+  {
+    "view": "quality",
+    "dialog": false,
+    "h1": "Data quality",
+    "main": 1060,
+    "scroll": 1280,
+    "width": 1280
+  },
+  {
+    "view": "overview",
+    "dialog": false,
+    "h1": "Pharmacy availability, in context.",
+    "main": 1700,
+    "scroll": 1920,
+    "width": 1920
+  },
+  {
+    "view": "catalogue",
+    "dialog": false,
+    "h1": "Find & compare",
+    "main": 1700,
+    "scroll": 1920,
+    "width": 1920
+  },
+  {
+    "view": "sources",
+    "dialog": false,
+    "h1": "Sources",
+    "main": 1700,
+    "scroll": 1920,
+    "width": 1920
+  },
+  {
+    "view": "quality",
+    "dialog": false,
+    "h1": "Data quality",
+    "main": 1700,
+    "scroll": 1920,
+    "width": 1920
+  },
+  {
+    "view": "overview",
+    "dialog": false,
+    "h1": "Pharmacy availability, in context.",
+    "main": 375.2000122070313,
+    "scroll": 375,
+    "width": 375
+  },
+  {
+    "view": "catalogue",
+    "dialog": false,
+    "h1": "Find & compare",
+    "main": 375.2000122070313,
+    "scroll": 375,
+    "width": 375
+  },
+  {
+    "view": "sources",
+    "dialog": false,
+    "h1": "Sources",
+    "main": 375.2000122070313,
+    "scroll": 375,
+    "width": 375
+  },
+  {
+    "view": "quality",
+    "dialog": false,
+    "h1": "Data quality",
+    "main": 375.2000122070313,
+    "scroll": 375,
+    "width": 375
+  }
+]

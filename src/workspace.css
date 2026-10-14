@@ -71,7 +71,7 @@ dialog:not([open]) { display: none; }
 .reader summary { cursor: pointer; padding-block: var(--s-4); font-size: var(--text-sm); font-weight: 600; }
 .reader-text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.75; font-size: var(--text-base); max-width: 65ch; margin: 0 0 var(--s-5); }
 .reader-gap { font-size: var(--text-sm); color: var(--ink-3); margin: 0 0 var(--s-4); }
-.reader-provenance { font-size: var(--text-xs); color: var(--ink-2); line-height: 1.8; padding-top: var(--s-4); }
+.reader-provenance { font-size: var(--text-xs); color: var(--ink-2); line-height: 1.8; padding-top: var(--s-4); overflow-wrap: anywhere; }
 .app-loading { min-height: 100dvh; gap: var(--s-4); }
 .feedback { padding: var(--s-4); background: var(--surface-sunk); border: 1px solid var(--line); font-size: var(--text-sm); }
 .offline-banner { padding: var(--s-2) var(--s-4); background: var(--warn-soft); color: var(--warn); font-size: var(--text-xs); }
@@ -206,6 +206,7 @@ dialog:not([open]) { display: none; }
 
 .dev-audit { position: fixed; bottom: var(--s-2); right: var(--s-2); z-index: 80; max-width: 360px; background: var(--surface); border: 1px solid var(--line); padding: var(--s-2); }
 .dev-audit output { display: block; max-height: 80px; overflow: auto; font-size: var(--text-xs); overflow-wrap: anywhere; }
+@media (max-width: 760px) { .dev-audit { top: var(--s-2); bottom: auto; left: var(--s-2); right: auto; max-width: calc(100vw - 32px); } }
 
 @media (pointer: coarse) { .btn, .btn-sm, .seg button, .facet-opt, .facet-head { min-height: 44px; } }
 
@@ -250,3 +251,7 @@ h1, h2, h3, .h1, .h2, .h3, .section-title { font-family: var(--serif); font-synt
 
 .source-filter-group { margin-top: var(--s-3); font-size: var(--text-xs); }
 .source-filter-group summary { cursor: pointer; min-height: var(--control-h); padding-block: var(--s-2); }
+
+.glyph-specimens { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: var(--s-5); padding-block: var(--s-5); }
+.glyph-specimens > div { display: grid; justify-items: center; gap: var(--s-2); font-size: var(--text-xs); color: var(--ink-2); }
+.glyph-specimen-icon { width: 48px; height: 48px; display: grid; place-items: center; background: var(--launcher-surface); border: 1px solid var(--launcher-line); border-radius: 14px; color: var(--text-on-inverse); }

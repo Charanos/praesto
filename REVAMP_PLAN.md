@@ -1,6 +1,10 @@
 # Kenya Pharmacy Availability Dashboard: revamp plan
 
-Prepared 14 October 2026 · Expanded after skill review · Implementation has not started
+Prepared 14 October 2026 · Expanded after skill review · Implementation active · See PROJECT_TRACKER.md
+
+Execution progress and evidence: [PROJECT_TRACKER.md](PROJECT_TRACKER.md). Later client directions prioritize easier interpretation, a custom slim console, ample spacing, Libertinus Serif / Nunito / JetBrains Mono typography, and a deliberate dark sidebar/actions within the light workspace.
+
+**Latest accepted foundation:** broaden the harmonious semantic accent families and use a shared original polished glyph set, sparingly. On phones, collapse navigation into an always-dark bottom-right launcher that expands upward into labeled floating actions. Its glyph treatment is the reference for subsequent section-by-section refinements. See [DESIGN.md](DESIGN.md) and the [local verification report](docs/revamp/VERIFICATION.md).
 
 ## 1. Objective
 
@@ -255,14 +259,14 @@ Bundled Python and Node were located during the follow-up tool review. The UI/UX
 
 ## 10. Deliverables and completion checklist
 
-- [ ] `DESIGN.md`: principles, tokens, typography, status semantics, motion, voice, components, and decisions.
-- [ ] Audit report and prioritized feature/state inventory.
-- [ ] Revamped interface across all four existing destinations and their states.
-- [ ] Development-only component catalogue with applicable interaction states.
-- [ ] Before/after screenshots and comparison notes at matching widths.
-- [ ] Regression, accessibility, contrast, performance, and data-contract reports with reproducible commands and measurements.
-- [ ] Metadata/indexing implementation and verification where applicable.
-- [ ] Review summary: changes, preserved behavior, approved exceptions, known gaps, and next steps.
+- [x] `DESIGN.md`: principles, tokens, typography, status semantics, motion, voice, components, and decisions.
+- [x] Audit report and prioritized feature/state inventory.
+- [x] Core usability and foundation pass across all four destinations; subsequent section refinements tracked separately.
+- [x] Development-only component catalogue with applicable interaction states.
+- [x] Before/after screenshots and comparison notes at matching widths.
+- [x] Local regression, accessibility, contrast, asset/filter performance and contract evidence; Lighthouse/field and manual assistive-technology limits stated in the report.
+- [x] Metadata/indexing implementation and local verification where applicable.
+- [x] Review summary: changes, preserved behavior, approved exceptions, known gaps, and next steps.
 - [ ] Release/rollback notes and deployment verification when deployment is authorized.
 
-**Next execution step:** resolve the outstanding data-preparation items recorded in `CLINICAL_DATA_PLAN.md`, then conduct Phase 0. Read-only baseline investigation can proceed independently; the main visual rebuild has not started.
+**Current execution position:** the baseline, shared foundations, core usability pass and local verification are complete. Review subsequent sections against the accepted design system. Licensed reference activation and promotion of refreshed source captures remain separate data gates; production release has not been performed.

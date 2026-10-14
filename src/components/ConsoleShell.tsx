@@ -1,9 +1,11 @@
-import { Icon } from './ui.jsx';
+import { useEffect, useRef, useState } from 'react';
+import { Icon } from './icons';
+import { useSmallScreen } from './useSmallScreen';
 export const destinations = [
-  { id: 'overview', label: 'Overview', icon: 'pulse', context: 'The captured picture' },
-  { id: 'catalogue', label: 'Catalogue', icon: 'grid', context: 'Find & compare' },
-  { id: 'sources', label: 'Sources', icon: 'layers', context: 'Pharmacy coverage' },
-  { id: 'quality', label: 'Data quality', icon: 'shield', context: 'Evidence & limitations' },
+  { id: 'overview', label: 'Overview', icon: 'overview', context: 'The captured picture' },
+  { id: 'catalogue', label: 'Catalogue', icon: 'capsule', context: 'Find & compare' },
+  { id: 'sources', label: 'Sources', icon: 'pharmacy', context: 'Pharmacy coverage' },
+  { id: 'quality', label: 'Data quality', icon: 'scan', context: 'Evidence & limitations' },
 ] as const;
 type Snapshot = { id: string; date: string; inferred: boolean; contract: string; match: string };
 const compactCount = (value: number) => value >= 10000 ? `${(value / 1000).toFixed(1)}k` : new Intl.NumberFormat('en-KE').format(value);
@@ -11,16 +13,40 @@ const compactCount = (value: number) => value >= 10000 ? `${(value / 1000).toFix
 export function ConsoleSidebar({ view, onNavigate, productCount, sourceCount, snapshot }: {
   view: string; onNavigate: (view: string) => void; productCount: number; sourceCount: number; snapshot: Snapshot;
 }) {
-  return <nav className="rail console-sidebar" aria-label="Main navigation">
+  const mobile = useSmallScreen();
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!mobile || !open) return;
+    const frame = requestAnimationFrame(() => menu.current?.querySelector<HTMLButtonElement>('[aria-current="page"]')?.focus());
+    const outside = (event: PointerEvent) => { if (event.target instanceof Node && !root.current?.contains(event.target)) setOpen(false); };
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.preventDefault(); setOpen(false); trigger.current?.focus(); } };
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape);
+    return () => { cancelAnimationFrame(frame); document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
+  }, [mobile, open]);
+  const navigate = (destination: string) => { onNavigate(destination); setOpen(false); if (mobile) trigger.current?.focus(); };
+  return <nav ref={root} className="rail console-sidebar" aria-label="Main navigation" data-open={open}
+    onBlurCapture={event => { if (mobile && open && event.relatedTarget instanceof Node && !root.current?.contains(event.relatedTarget)) setOpen(false); }}>
     <div className="console-brand"><span className="rail-mark" aria-hidden="true">KP</span><span className="console-brand-name">Kenya Pharmacy<small>Availability workspace</small></span></div>
     <div className="console-nav-heading"><span>Explore</span><span className="console-country">KE</span></div>
-    <div className="console-navigation">
-      {destinations.map(item => <button key={item.id} className="rail-item" aria-label={item.label} aria-current={view === item.id ? 'page' : undefined} onClick={() => onNavigate(item.id)}>
-        <Icon name={item.icon} size={17} className="console-nav-icon" /><span>{item.label}</span>
+    <div className="console-navigation" id="workspace-destinations" ref={menu} hidden={mobile && !open}
+      onKeyDown={event => { if (!mobile || !['ArrowDown','ArrowUp','Home','End'].includes(event.key)) return;
+        const buttons = [...(menu.current?.querySelectorAll<HTMLButtonElement>('button') || [])];
+        const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
+        event.preventDefault(); buttons[next]?.focus(); }}>
+      {destinations.map(item => <button key={item.id} className="rail-item" aria-label={item.label} aria-current={view === item.id ? 'page' : undefined} onClick={() => navigate(item.id)}>
+        <span className="console-nav-symbol"><Icon name={item.icon} size={18} className="console-nav-icon" /></span><span>{item.label}</span>
         {item.id === 'catalogue' && <span className="tail">{compactCount(productCount)}</span>}
         {item.id === 'sources' && <span className="tail">{sourceCount}</span>}
       </button>)}
     </div>
+    <button ref={trigger} className="mobile-nav-trigger" type="button" aria-expanded={open} aria-controls="workspace-destinations" aria-label={open ? 'Close workspace menu' : 'Open workspace menu'} onClick={() => setOpen(!open)}>
+      <Icon name={open ? 'x' : 'grid'} size={23} />
+    </button>
     <div className="console-sidebar-foot">
       <div className="console-snapshot-line"><span className="eyebrow">Snapshot</span><span className="mono">{snapshot.id}</span></div>
       <p>Collected listings.<br />Current stock needs confirmation.</p>

@@ -1,0 +1,45 @@
+[
+  {
+    "view": "overview",
+    "width": 375,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 129
+      }
+    ],
+    "passes": 49
+  },
+  {
+    "view": "catalogue",
+    "width": 375,
+    "violations": [],
+    "incomplete": [],
+    "passes": 40
+  },
+  {
+    "view": "sources",
+    "width": 375,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 26
+      }
+    ],
+    "passes": 46
+  },
+  {
+    "view": "quality",
+    "width": 375,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 48
+      }
+    ],
+    "passes": 46
+  }
+]

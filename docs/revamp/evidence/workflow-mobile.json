@@ -1,0 +1,19 @@
+{
+  "width": 375,
+  "passed": [
+    "search",
+    "stock mask",
+    "pharmacy selection",
+    "sort",
+    "virtual row keyboard",
+    "filter application",
+    "dialog",
+    "clinical reference",
+    "Escape",
+    "focus return",
+    "empty/reset",
+    "matrix",
+    "charts/list restoration"
+  ],
+  "referenceProduct": "Amoxycillin 500Mg Caps 100S"
+}

@@ -47,3 +47,10 @@ Screenshots in `evidence/before-{view}-{width}.jpg` cover four views at 375, 768
 The baseline has a coherent analytical foundation. Its main weakness is that everything receives similar small typography while a large dark navigation rail gets disproportionate emphasis. Nested panels and caveats compete with the decision users came to make. The revamp will give product identity, reported evidence and price room to breathe; make uncertainty readable; and make mobile a full workspace. Existing custom charts and filtering remain useful foundations.
 
 Qualitative audit (1 poor–5 strong): hierarchy 3, density 3, consistency 4, contrast 2, touch 2, keyboard 1, motion 4, bundle size 4, copy 3, mobile 1. These are design judgments, not measured conformance scores. Formal automated accessibility and interactive regression checks belong to the implementation validation report.
+
+## Findings resolved during implementation
+
+- Legacy product `nIn` aggregates count raw source states; judged `inMask`/`oosMask` differ for some products and may contain mixed reports from one source. New readable stock summaries use those evidence masks. CSV columns and legacy sort/count definitions remain compatible; source observations are the detailed evidence.
+- The existing `pk` URL dimension was serialized but never applied. Its declared pack-kind predicate is now implemented with regression coverage and an editable Pack format facet. Existing ANY/ALL and stock-in URL masks are also editable in the advanced pharmacy controls.
+- The unused population-count helper omitted its final byte mask; exhaustive 16-bit comparison now verifies the correction.
+- Mobile native dialogs needed an explicit viewport height rather than relying on inset positioning. Their body now scrolls while the footer remains reachable.
