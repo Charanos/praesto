@@ -75,8 +75,8 @@ Related products sharing an ingredient must retain identity and evidence context
 |---|---|---|
 | Canvas | White primary surfaces; near-white recessed areas; restrained borders. | Keeps dense evidence readable and reduces competing visual weight. |
 | Emphasis | Deep ink for primary actions, selected states, and a few compact accent surfaces. | Establishes hierarchy without making the page feel dark. |
-| Accent | One restrained brand accent, selected after contrast testing. | Separates actions from status semantics. |
-| Typography | One primary sans family, tabular numerals, a compact documented scale. | Makes prices, counts, and labels easier to compare. |
+| Accent | Teal anchors actions; cobalt, amber, coral, botanical and berry extend semantic/categorical families with tested pairings. | Adds range while keeping actions and stock semantics distinct. |
+| Typography | Libertinus Serif titles, Nunito body/UI and JetBrains Mono numerals with a compact documented scale. | Creates intentional hierarchy and comparable numbers. |
 | Layout | Structured rows, aligned columns, clear section headings, generous grouping space. | Supports scanning without turning every fact into a card. |
 | Status | Plain text plus a consistent icon or pattern, supported by color. | Preserves meaning for color-blind users and assistive technology. |
 | Charts | Direct labels, explicit units and denominators, restrained axes, text/table alternatives. | Makes the evidence understandable without interpreting decoration. |
@@ -269,4 +269,4 @@ Bundled Python and Node were located during the follow-up tool review. The UI/UX
 - [x] Review summary: changes, preserved behavior, approved exceptions, known gaps, and next steps.
 - [ ] Release/rollback notes and deployment verification when deployment is authorized.
 
-**Current execution position:** the baseline, shared foundations, core usability pass and local verification are complete. Review subsequent sections against the accepted design system. Licensed reference activation and promotion of refreshed source captures remain separate data gates; production release has not been performed.
+**Current execution position:** Phases 0–5 are implemented and Phase 6 local verification is complete, including mobile Lighthouse and production failure recovery. See `docs/revamp/PHASE_3_6.md` and `docs/revamp/VERIFICATION.md`. Licensed reference activation, refreshed source promotion, real assistive-technology review, production-origin metadata and deployment remain separate gates.

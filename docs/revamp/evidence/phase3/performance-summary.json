@@ -1,0 +1,50 @@
+[
+  {
+    "view": "overview",
+    "performance": 96,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 63,
+    "lcpMs": 2228.3740000000003,
+    "tbtMs": 117.50000000000023,
+    "cls": 0.00042452128801556005,
+    "lighthouse": "13.5.0",
+    "fetchTime": "2026-10-14T03:36:26.534Z"
+  },
+  {
+    "view": "catalogue",
+    "performance": 92,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 63,
+    "lcpMs": 2323.726,
+    "tbtMs": 238,
+    "cls": 0.00042452128801556005,
+    "lighthouse": "13.5.0",
+    "fetchTime": "2026-10-14T03:36:50.492Z"
+  },
+  {
+    "view": "sources",
+    "performance": 97,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 63,
+    "lcpMs": 2289.313,
+    "tbtMs": 19,
+    "cls": 0.0006085172993256622,
+    "lighthouse": "13.5.0",
+    "fetchTime": "2026-10-14T03:37:16.838Z"
+  },
+  {
+    "view": "quality",
+    "performance": 96,
+    "accessibility": 100,
+    "bestPractices": 100,
+    "seo": 63,
+    "lcpMs": 2319.781,
+    "tbtMs": 86.5,
+    "cls": 0.017285527307956513,
+    "lighthouse": "13.5.0",
+    "fetchTime": "2026-10-14T03:37:38.972Z"
+  }
+]

@@ -1,0 +1,71 @@
+[
+  {
+    "state": "expanded filters",
+    "width": 1280,
+    "violations": [],
+    "incomplete": [],
+    "passes": 41
+  },
+  {
+    "state": "clinical detail dialog",
+    "width": 1280,
+    "violations": [],
+    "incomplete": [],
+    "passes": 28
+  },
+  {
+    "state": "matrix",
+    "width": 1280,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 7
+      }
+    ],
+    "passes": 42
+  },
+  {
+    "state": "charts",
+    "width": 1280,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 11
+      }
+    ],
+    "passes": 43
+  },
+  {
+    "state": "empty results",
+    "width": 1280,
+    "violations": [],
+    "incomplete": [],
+    "passes": 40
+  },
+  {
+    "state": "expanded source ledger",
+    "width": 1280,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 93
+      }
+    ],
+    "passes": 47
+  },
+  {
+    "state": "expanded overview analysis",
+    "width": 1280,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 53
+      }
+    ],
+    "passes": 49
+  }
+]

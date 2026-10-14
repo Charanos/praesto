@@ -1,0 +1,30 @@
+[
+  {
+    "width": 1280,
+    "passed": [
+      "15/8/7 source groups",
+      "source name search",
+      "source empty/reset",
+      "keyboard disclosure",
+      "listing-grain rate",
+      "source-to-catalogue",
+      "review queue count/filter",
+      "reference gap count/filter",
+      "sensitivity label and restoration"
+    ]
+  },
+  {
+    "width": 375,
+    "passed": [
+      "15/8/7 source groups",
+      "source name search",
+      "source empty/reset",
+      "keyboard disclosure",
+      "listing-grain rate",
+      "source-to-catalogue",
+      "review queue count/filter",
+      "reference gap count/filter",
+      "sensitivity label and restoration"
+    ]
+  }
+]

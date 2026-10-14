@@ -1,0 +1,18 @@
+{
+  "passed": [
+    "HTTP retry exhaustion and reload recovery",
+    "listing retry recovery",
+    "no production audit",
+    "same-size metadata corruption rejected",
+    "integrity reload recovery",
+    "search usable during delayed product read",
+    "export disabled until verified",
+    "query and pharmacy selection retained on readiness"
+  ],
+  "resultCount": 16,
+  "csv": {
+    "rows": 458,
+    "columns": 34,
+    "byteIdenticalToEarlierVerifiedDownload": true
+  }
+}

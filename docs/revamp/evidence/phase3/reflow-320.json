@@ -1,0 +1,34 @@
+[
+  {
+    "view": "overview",
+    "dialog": false,
+    "h1": "The availability picture.",
+    "main": 320,
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "view": "catalogue",
+    "dialog": false,
+    "h1": "Find & compare",
+    "main": 320,
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "view": "sources",
+    "dialog": false,
+    "h1": "Know your sources.",
+    "main": 320,
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "view": "quality",
+    "dialog": false,
+    "h1": "Understand the confidence.",
+    "main": 320,
+    "scroll": 320,
+    "width": 320
+  }
+]

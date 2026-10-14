@@ -43,6 +43,12 @@ Desktop uses a 220px navigation region with an inset ink sidebar, flexible main 
 
 Primary actions are ink on white with a white inverse foreground. Blue identifies links/focus; green/red/ochre encode evidence. All text tokens target >=4.5:1 on their intended light surfaces. Charts may use lighter fills with direct labels and data alternatives. Motion is brief and honors reduced motion. No decorative gradients or glass surfaces.
 
+## Section execution and loading
+
+`WorkspaceIntro.tsx` owns persistent route titles; the shell and search remain usable while verified data is prepared in a worker. Export stays disabled until readiness. The Overview leads with the stock summary and offers supporting price/coverage/confidence analysis through a native disclosure. `SourceDirectory.tsx` aligns pharmacy identity, listing-grain rates and browsing, with reporting groups and name search. `ReviewPaths.tsx` turns data quality into actionable queues. Product detail uses focus-moving shortcuts and grouped supplied fields, with missing fields still explicit. At 620px and below the native detail dialog spans the full viewport; its navigation labels fit at 320px.
+
+Below-fold analysis uses native content visibility; facet calculations and selection statistics run on intent. Collection denominators and rates retain their grain. Broad in-stock coverage and related-product ranking use judged masks; raw aggregate export definitions remain compatible. See [Phases 3–6](docs/revamp/PHASE_3_6.md) and [verification](docs/revamp/VERIFICATION.md).
+
 ## Data and clinical boundary
 
 Keep the existing URL grammar, filtering semantics, CSV schema and contract 1.1.0. “Reference-linked” means the existing reference-link flag, not a complete monograph. Clinical text comes from an optional same-origin, versioned endpoint. The Vite development server can read existing local reference files; production contains no newly bundled monographs. A licensed server adapter must implement the documented boundary before enabling production reference detail. No credentials belong in browser configuration.
