@@ -1,0 +1,255 @@
+.overview-brief .brief-watchlist {
+  margin-top: var(--s-6-5);
+}
+.brief-watchlist::before {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-bottom: var(--s-6-5);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--line) 12%,
+    var(--line) 88%,
+    transparent
+  );
+}
+.watch-ledger {
+  border-radius: var(--r-surface);
+  overflow: hidden;
+  background: var(--surface-sunk);
+  padding: var(--s-2) var(--s-5);
+}
+.brief-watchlist > .brief-caption {
+  max-width: 68ch;
+}
+.watch-ledger-labels,
+.watch-ledger-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px 170px;
+  align-items: center;
+  gap: var(--s-5);
+}
+.watch-ledger-labels {
+  padding: 14px 0;
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+}
+.watch-ledger-row + .watch-ledger-row {
+  border-top: 1px solid var(--line);
+}
+.watch-ledger-summary {
+  min-height: 100px;
+}
+.watch-ledger-select {
+  display: flex;
+  gap: var(--s-4);
+  align-items: center;
+  text-align: left;
+  padding-block: var(--s-4-5);
+  min-width: 0;
+}
+.watch-ledger-select > svg {
+  flex-shrink: 0;
+  color: var(--ink-3);
+}
+.watch-ledger-select strong {
+  font-size: var(--text-reading);
+  line-height: 1.55;
+  display: block;
+  font-weight: 650;
+}
+.watch-ledger-select small {
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  display: block;
+  margin-top: 5px;
+  color: var(--ink-3);
+}
+.watch-ledger-row[data-selected="true"] .watch-ledger-select > svg {
+  color: var(--teal);
+}
+.watch-ledger-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  font-size: var(--text-sm);
+}
+.watch-ledger-counts b {
+  font-weight: 500;
+  font-size: var(--text-lg);
+}
+.watch-ledger-counts [data-state="out"] {
+  color: var(--out);
+}
+.watch-ledger-counts [data-state="in"] {
+  color: var(--in);
+}
+.watch-ledger-price {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  justify-content: space-between;
+  font-size: var(--text-base);
+}
+.watch-ledger-price small {
+  display: none;
+}
+.watch-ledger-price button {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--teal);
+}
+.watch-ledger-price button:hover {
+  background: var(--surface);
+}
+.watch-ledger-evidence {
+  margin: 0 0 var(--s-4-5) var(--s-6);
+  padding: var(--s-4-5) var(--s-5);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.watch-ledger-evidence h4 {
+  font-weight: 650;
+  font-size: var(--text-sm);
+  margin-bottom: var(--s-4);
+  color: var(--ink-2);
+}
+.watch-ledger-evidence dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-4-5) var(--s-5-5);
+}
+.watch-ledger-evidence dt {
+  font-size: var(--text-sm);
+  margin-bottom: 10px;
+  color: var(--ink-3);
+}
+.watch-ledger-evidence dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0;
+}
+.watch-ledger-evidence dd > span {
+  font-size: var(--text-base);
+}
+.watch-ledger-evidence .brief-link {
+  margin-top: var(--s-4);
+  font-size: var(--text-sm);
+  min-height: 40px;
+}
+@media (max-width: 900px) {
+  .watch-ledger-labels,
+  .watch-ledger-summary {
+    grid-template-columns: minmax(0, 1fr) 145px;
+    gap: var(--s-4);
+  }
+  .watch-ledger-labels > span:last-child {
+    display: none;
+  }
+  .watch-ledger-price {
+    grid-column: 1/-1;
+    margin: 0 0 var(--s-4) var(--s-6);
+    justify-content: flex-start;
+  }
+  .watch-ledger-price small {
+    display: block;
+    font-size: var(--text-sm);
+    color: var(--ink-3);
+  }
+  .watch-ledger-price button {
+    margin-left: auto;
+  }
+}
+@media (max-width: 620px) {
+  .watch-ledger {
+    padding: var(--s-1) var(--s-4-5);
+  }
+  .watch-ledger-labels {
+    display: none;
+  }
+  .watch-ledger-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .watch-ledger-select {
+    width: 100%;
+    gap: var(--s-3);
+  }
+  .watch-ledger-select strong {
+    font-size: var(--text-reading);
+  }
+  .watch-ledger-select small {
+    font-size: var(--text-base);
+  }
+  .watch-ledger-counts {
+    margin-left: var(--s-5-5);
+    gap: var(--s-4);
+    font-size: var(--text-base);
+  }
+  .watch-ledger-price {
+    margin: var(--s-3) 0 var(--s-4) var(--s-5-5);
+    width: calc(100% - 28px);
+    flex-wrap: wrap;
+  }
+  .watch-ledger-price button {
+    width: 44px;
+    height: 44px;
+  }
+  .watch-ledger-evidence {
+    margin-left: 0;
+    padding: var(--s-4-5);
+  }
+  .watch-ledger-evidence dl {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-4-5);
+  }
+  .watch-ledger-evidence .brief-link {
+    min-height: 44px;
+    font-size: var(--text-base);
+  }
+}
+/* Evidence belongs to its product row, without a second oversized card. */
+.watch-ledger-summary {
+  min-height: 88px;
+}
+.watch-ledger-counts b {
+  font-size: var(--text-base);
+}
+.watch-ledger-evidence {
+  background: var(--surface);
+  padding: var(--s-4) var(--s-4-5);
+  margin-bottom: var(--s-4);
+  border-radius: var(--r-inset);
+  box-shadow: var(--sunken-shadow);
+}
+.watch-ledger-evidence h4 {
+  font-size: var(--text-sm);
+  margin-bottom: 14px;
+}
+.watch-ledger-evidence dd > span {
+  font-size: var(--text-sm);
+}
+.watch-ledger-evidence dl {
+  gap: var(--s-4) var(--s-5-5);
+}
+@media (max-width: 620px) {
+  .watch-ledger-evidence {
+    margin-left: 0;
+    padding: var(--s-4);
+  }
+  .watch-ledger-counts {
+    gap: var(--s-2);
+  }
+  .watch-ledger-select {
+    padding-block: 18px;
+  }
+  .watch-ledger-evidence dt {
+    margin-bottom: var(--s-2);
+  }
+}

@@ -4,9 +4,8 @@ const intros: Record<
 > = {
   overview: {
     eyebrow: "Snapshot overview",
-    title: "The availability picture.",
-    description:
-      "Reported stock, listed prices and pharmacy coverage. Start with the evidence, then explore a product or source.",
+    title: "Product availability, at a glance.",
+    description: "Reported product stock across the captured pharmacy network.",
   },
   catalogue: { eyebrow: "Product catalogue", title: "Find & compare" },
   sources: {
@@ -26,10 +25,8 @@ export default function WorkspaceIntro({ view }: { view: string }) {
   const intro = intros[view];
   if (!intro) return null;
   return (
-    <header
-      className={`workspace-intro ${view === "catalogue" ? "workspace-intro-catalogue" : ""}`}
-    >
-      <div className="eyebrow">{intro.eyebrow}</div>
+    <header className={`workspace-intro workspace-intro-${view}`}>
+      {view !== "overview" && <div className="eyebrow">{intro.eyebrow}</div>}
       <h1 className="h1">{intro.title}</h1>
       {intro.description && <p className="sub">{intro.description}</p>}
     </header>

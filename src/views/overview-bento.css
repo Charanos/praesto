@@ -1,0 +1,49 @@
+/* Different shapes reflect different jobs; each tile variant keeps a stable reading order. */
+.overview-brief .brief-section {
+  position: relative;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 800px;
+}
+.overview-brief .brief-section::after,
+.availability-hero::after {
+  content: "";
+  display: block;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--line) 15%,
+    var(--line) 85%,
+    transparent
+  );
+  margin-top: var(--s-6);
+}
+.overview-brief .brief-section {
+  margin-top: var(--s-6);
+}
+.availability-states article {
+  position: relative;
+}
+.availability-states article + article::before {
+  content: "";
+  position: absolute;
+  width: 1px;
+  top: 0;
+  bottom: 0;
+  left: -16px;
+  background: var(--line);
+}
+@media (max-width: 900px) {
+  .availability-states article + article::before {
+    left: -8px;
+  }
+}
+@media (max-width: 620px) {
+  .availability-states article + article::before {
+    width: 100%;
+    height: 1px;
+    left: 0;
+    top: -12px;
+    bottom: auto;
+  }
+}

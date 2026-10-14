@@ -1,9 +1,9 @@
 {
-  "name": "kpad-pipeline",
+  "name": "praesto",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Kenya Pharmacy Availability Dashboard - data pipeline (transform + matching engine)",
+  "description": "Praesto - pharmacy product availability and evidence workspace for Kenya",
   "scripts": {
     "prebuild": "node dev/stamp-read-model.mjs",
     "build": "vite build",
@@ -22,12 +22,15 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" dev/stamp-read-model.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" dev/stamp-read-model.mjs",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "check": "npm run typecheck && npm run format:check && npm run lint && npm test && npm run verify && npm run build"
+    "check": "npm run typecheck && npm run format:check && npm run lint && npm test && npm run verify && npm run build",
+    "check:app": "npm run typecheck && npm run format:check && npm run lint && npm test && npm run build"
   },
   "dependencies": {
     "@duckdb/node-api": "^1.5.5-r.5",
+    "@radix-ui/react-select": "2.4.1",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "recharts": "3.10.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

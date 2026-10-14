@@ -1,270 +1,635 @@
-/**
- * Data quality.
- *
- * The caveats promoted to a screen rather than buried in a footnote: what the
- * reference scrape has not reached yet, what the matcher is unsure about, and
- * which feeds are excluded from the headline.
- *
- * Every figure here is a linkage between records actually held. None of them
- * is a percentage of an assumed total, because the size of the real drug
- * register is not knowable from inside the data.
- */
+/** Evidence workbench: linkage, matching and stock reporting keep their own denominators. */
+import { useMemo, useState } from "react";
+import { runFilter, summarise, EMPTY } from "../lib/filters.js";
+import { Icon, n0, n1 } from "../components/ui.jsx";
+import { EvidenceBadge, PillToggle } from "../components/EvidenceControls";
+import PharmacyGlyph from "../components/PharmacyGlyph";
+import "./quality-overhaul.css";
 
-import { useMemo } from 'react';
-import { runFilter, summarise, EMPTY } from '../lib/filters.js';
-import { Section, Kpi, Icon, Tag, n0, n1, compact } from '../components/ui.jsx';
-import { useTip, LinkageBars, ConfidenceArc } from '../components/charts.jsx';
-import ReviewPaths from '../components/ReviewPaths';
-
-const QUEUE_ROWS = 12;
-
+function Heading({ title, description, right = false }) {
+  return (
+    <header className="quality-heading" data-align={right ? "right" : "left"}>
+      <div>
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
+    </header>
+  );
+}
+function CoverageRow({ label, count, total, tone }) {
+  const percent = (100 * count) / Math.max(1, total);
+  return (
+    <div className="quality-field-row" data-tone={tone}>
+      <div>
+        <strong>{label}</strong>
+        <span className="num">{n1(percent)}%</span>
+      </div>
+      <meter
+        min={0}
+        max={total || 1}
+        value={count}
+        aria-label={`${label}: ${n0(count)} of ${n0(total)} records linked`}
+      />
+      <p>
+        <span>
+          <b className="num">{n0(count)}</b> of{" "}
+          <span className="num">{n0(total)}</span> linked
+        </span>
+        <span>
+          <span className="num">{n0(total - count)}</span> missing
+        </span>
+      </p>
+    </div>
+  );
+}
 export default function Quality({ store, onNavigate, setFilters }) {
-  const { meta, P, D } = store;
-  const cov = meta.coverage;
-  const h = meta.headline;
-  const tip = useTip();
-
-  const all = useMemo(() => store.rowsByListed ?? runFilter(store, EMPTY, { key: 'listed', dir: 'desc' }).rows, [store]);
-  const stats = useMemo(() => store.allStats ?? summarise(store, all), [store, all]);
-
+  const { meta, P, D } = store,
+    cov = meta.coverage,
+    h = meta.headline;
+  const [queue, setQueue] = useState("review"),
+    [moreQueue, setMoreQueue] = useState(false),
+    [moreClasses, setMoreClasses] = useState(false),
+    [classQuery, setClassQuery] = useState("");
+  const all = useMemo(
+    () =>
+      store.rowsByListed ??
+      runFilter(store, EMPTY, { key: "listed", dir: "desc" }).rows,
+    [store],
+  );
+  const stats = useMemo(
+    () => store.allStats ?? summarise(store, all),
+    [store, all],
+  );
   const backlog = useMemo(
-    () => all.filter((i) => D.gap[P.gap[i]] === 'di_miss'),
+    () => all.filter((i) => D.gap[P.gap[i]] === "di_miss"),
     [all, D, P],
   );
-
   const review = useMemo(
-    () => all
-      .filter((i) => D.review[P.review[i]] === 'needs_review')
-      .sort((a, b) => P.nListed[b] - P.nListed[a]),
+    () =>
+      all
+        .filter((i) => D.review[P.review[i]] === "needs_review")
+        .sort((a, b) => P.nListed[b] - P.nListed[a]),
     [all, D, P],
   );
-
-  // Therapeutic class is reached only through a matched active ingredient, so
-  // product coverage is strictly lower than the ingredient linkage. Ranked,
-  // because the useful question is which classes the register actually reaches.
-  const classCoverage = useMemo(() => {
+  const classes = useMemo(() => {
     const counts = new Int32Array(D.therapeutic?.length ?? 0);
     let classed = 0;
-    for (const i of all) {
-      const t = P.therapeutic[i];
-      if (t >= 0) { counts[t]++; classed++; }
-    }
-    const rows = Array.from(counts)
-      .map((n, i) => ({ label: D.therapeutic[i], n }))
-      .filter((r) => r.n > 0)
-      .sort((a, b) => b.n - a.n);
-    return { rows, classed, peak: Math.max(1, ...rows.map((r) => r.n)) };
+    for (const i of all)
+      if (P.therapeutic[i] >= 0) {
+        counts[P.therapeutic[i]]++;
+        classed++;
+      }
+    return {
+      classed,
+      rows: Array.from(counts)
+        .map((n, index) => ({ n, index, name: D.therapeutic[index] }))
+        .filter((r) => r.n > 0)
+        .sort((a, b) => b.n - a.n),
+    };
   }, [all, D, P]);
-
-  const quarantined = meta.pharmacies.filter((p) => p.present_in_snapshot && p.quarantined);
-  const jump = (patch) => { setFilters({ ...EMPTY, ...patch }); onNavigate('catalogue'); };
-
-  const linkage = [
-    { label: 'Brand → active ingredient', value: cov.link_brand_to_ingredient, note: `${n0(cov.brands_with_ingredient)} of ${n0(cov.brands_rows)} brands` },
-    { label: 'Brand → manufacturer', value: cov.link_brand_to_manufacturer, note: `${n0(cov.brands_with_manufacturer)} of ${n0(cov.brands_rows)} brands` },
-    { label: 'Ingredient → indications', value: cov.link_ingredient_to_indications, note: `${n0(cov.ingredients_with_indications)} of ${n0(cov.ingredients_rows)} ingredients` },
-    { label: 'Ingredient → dosage', value: cov.link_ingredient_to_dosage, note: `${n0(cov.ingredients_with_dosage)} of ${n0(cov.ingredients_rows)} ingredients` },
-    { label: 'Ingredient → contraindications', value: cov.link_ingredient_to_contraindications, note: `${n0(cov.ingredients_with_contraindications)} of ${n0(cov.ingredients_rows)} ingredients` },
-    { label: 'Ingredient → therapeutic category', value: cov.link_ingredient_to_category, note: `${n0(cov.ingredients_with_category)} of ${n0(cov.ingredients_rows)} ingredients` },
-  ];
-
+  const quarantined = meta.pharmacies.filter(
+    (p) => p.present_in_snapshot && p.quarantined,
+  );
+  const confidence = D.matchBand
+    .map((label, index) => ({ label, index, n: stats.byMatch[index] ?? 0 }))
+    .sort((a, b) => b.n - a.n);
+  const activeQueue = queue === "review" ? review : backlog;
+  const classRows = classes.rows.filter((row) =>
+    row.name.toLowerCase().includes(classQuery.trim().toLowerCase()),
+  );
+  const jump = (patch) => {
+    setFilters({ ...EMPTY, ...patch });
+    onNavigate("catalogue");
+  };
+  const gaps = () =>
+    jump({ gaps: [D.gap.indexOf("di_miss")].filter((i) => i >= 0) });
+  const matched = cov.products_with_drugindex_match,
+    unmatched = cov.products_total - matched;
   return (
-    <div className="page quality-page section-pass">
-      {tip.node}
-
-      <ReviewPaths items={[
-        {label:'Product matches to review',count:review.length,description:'Doubtful matches and contested classifications are excluded from the shortage signal.',action:'Review product matches',icon:'scan',tone:'amber',onOpen:()=>jump({review:'needs_review'})},
-        {label:'Products awaiting reference',count:backlog.length,description:'No local reference match or usable source category. These products need more evidence.',action:'Explore reference gaps',icon:'book',tone:'cobalt',onOpen:()=>jump({gaps:[D.gap.indexOf('di_miss')].filter(index=>index>=0)})},
-        {label:'Sources without usable stock',count:quarantined.length,description:'Listings remain searchable, but do not contribute to the headline availability rate.',action:'Inspect pharmacy sources',icon:'pharmacy',tone:'berry',onOpen:()=>onNavigate('sources')},
-      ]} />
-      <details className="evidence-reading-guide"><summary>How to interpret stock, matching and reference information <Icon name="info" size={14} /></summary><section className="trust-guide" aria-label="How to interpret the evidence">
-        <div><span className="eyebrow">Stock</span><h2>A listing is not a guarantee.</h2><p>Only reporting sources contribute to the availability rate. Confirm current stock with the pharmacy.</p></div>
-        <div><span className="eyebrow">Matching</span><h2>Check strength, form and pack.</h2><p>Products are grouped from source listings. Match confidence describes that grouping, not clinical suitability.</p></div>
-        <div><span className="eyebrow">Reference</span><h2>Missing information stays unknown.</h2><p>The local reference is incomplete. A linked ingredient does not establish comprehensive or current clinical guidance.</p></div>
-      </section></details>
-      <div className="stack quality-stack">
-        {/* ------------------------------------------------- headline --- */}
-        <section className="section quality-pulse">
-          <div className="kpis">
-            <Kpi label="Catalogue matched" value={n1(100 * cov.drugindex_match_rate)} unit="%"
-              note={<>{n0(cov.products_with_drugindex_match)} of {n0(cov.products_total)} products reach the register</>} />
-            <Kpi label="Awaiting reference" value={compact(cov.products_awaiting_drugindex)}
-              tone="var(--warn)"
-              note={<>{n1(100 * cov.catalogue_blocked_on_drugindex)}% of catalogue products</>} />
-            <Kpi label="Other unclassified" value={compact(cov.products_unclassified - cov.products_awaiting_drugindex)}
-              note={<>need classification evidence or review</>} />
-            <Kpi label="Therapeutic class linked" value={compact(classCoverage.classed)}
-              note={<>across {classCoverage.rows.length} therapeutic categories</>} />
-            <Kpi label="In review" value={compact(review.length)}
-              note={<>doubtful match or contested class</>} />
-            <Kpi label="Feeds excluded" value={quarantined.length}
-              note={<>of {h.pharmacies} — no usable stock signal</>} />
+    <div className="quality-workbench">
+      <section className="quality-summary" aria-label="Evidence overview">
+        <div className="quality-summary-reference">
+          <div className="quality-summary-top">
+            <Icon name="book" size={22} />
+            <span>Local reference linkage</span>
+            <EvidenceBadge tone="neutral">Incomplete reference</EvidenceBadge>
           </div>
-
-          <div className="notice">
-            <Icon name="alert" size={13} />
+          <div className="quality-summary-main">
+            <strong className="num">
+              {n1((100 * matched) / Math.max(1, cov.products_total))}
+              <small>%</small>
+            </strong>
             <div>
-              <b>The local DrugIndex reference is incomplete.</b> {n0(cov.brands_rows)} brands and{' '}
-              {n0(cov.ingredients_rows)} ingredient records in the local export, across{' '}
-              {cov.distinct_scrape_days} record-date groups through {String(cov.latest_updated_at ?? '').slice(0, 10)}.
-              These record dates do not verify clinical revision dates. Every figure below measures linkage between records held — none is a percentage of an
-              assumed total, which cannot be known from inside the data.
+              <h2>
+                Products linked to a<br />
+                reference record.
+              </h2>
+              <p>
+                <b className="num">{n0(matched)}</b> of{" "}
+                <span className="num">{n0(cov.products_total)}</span> captured
+                products
+              </p>
             </div>
           </div>
-        </section>
-
-        <hr className="rule" />
-
-        {/* ------------------------------------------------ reference --- */}
-        <div className="quality-reference-grid">
-          <Section
-            className="quality-linkage"
-            eyebrow="Reference data"
-            title="Field coverage"
-            caption="How completely each record type links to the next. Therapeutic class reaches a product only through a matched ingredient, so product coverage is always lower than the ingredient linkage shown here."
-            fill
+          <div
+            className="quality-linkage-track"
+            role="img"
+            aria-label={`${n0(matched)} products linked; ${n0(unmatched)} without a reference match`}
           >
-            <LinkageBars items={linkage} tip={tip} />
-          </Section>
-
-          <Section
-            className="quality-confidence"
-            eyebrow="Resolution"
-            title="Match confidence"
-            caption="Low-confidence cross-source matches are held out of the shortage signal entirely."
-            fill
-          >
-            <ConfidenceArc counts={stats.byMatch} labels={D.matchBand} tip={tip} />
-            <div className="tiny dim quality-confidence-note">Confidence describes the grouping of pharmacy listings, not clinical suitability. Low-confidence matches and products awaiting review are excluded from the shortage signal. Matching version: <span className="mono">{meta.run.match_algo_version}</span>.</div>
-          </Section>
+            <i
+              style={{
+                width: `${(100 * matched) / Math.max(1, cov.products_total)}%`,
+              }}
+            />
+          </div>
+          <p>
+            Linkage measures the records held here. It does not establish
+            complete prescribing information or current clinical guidance.
+          </p>
         </div>
-
-        {classCoverage.rows.length > 0 && (
-          <Section
-            className="quality-class"
-            eyebrow={`${compact(classCoverage.classed)} products classed`}
-            title="Therapeutic class coverage"
-            caption={<>
-              Reached through the matched active ingredient. Null is a real state, not an error —
-              filtering on a class silently drops every unclassed product, so a class breakdown
-              must always show what it excludes.
-            </>}
+        <div className="quality-priority-list">
+          <button
+            onClick={() => jump({ review: "needs_review" })}
+            aria-label="Review product matches"
           >
-            <div className="quality-class-list">
-              {classCoverage.rows.map((r) => (
-                <button
-                  key={r.label}
-                  className="quality-class-row"
-                  onClick={() => jump({ therapeutic: [D.therapeutic.indexOf(r.label)] })}
-                  onMouseMove={(e) => tip.show(e, (
-                    <><b>{r.label}</b><br /><span className="num">{n0(r.n)}</span> products</>
-                  ))}
-                  onMouseLeave={tip.hide}
-                >
-                  <span className="trunc" style={{ textAlign: 'left' }}>{r.label}</span>
-                  <span className="track"><i style={{ width: `${(100 * r.n) / classCoverage.peak}%` }} /></span>
-                  <span className="num">{n0(r.n)}</span>
-                </button>
+            <span className="section-glyph" data-tone="amber">
+              <Icon name="scan" size={21} />
+            </span>
+            <div>
+              <h3>Product matches to review</h3>
+              <p>Doubtful identity or contested classification</p>
+            </div>
+            <strong className="num">{n0(review.length)}</strong>
+            <Icon name="right" size={16} />
+          </button>
+          <button onClick={gaps} aria-label="Explore reference gaps">
+            <span className="section-glyph" data-tone="cobalt">
+              <Icon name="file-medical" size={21} />
+            </span>
+            <div>
+              <h3>Awaiting reference evidence</h3>
+              <p>No register match or usable source category</p>
+            </div>
+            <strong className="num">{n0(backlog.length)}</strong>
+            <Icon name="right" size={16} />
+          </button>
+          <button
+            onClick={() => onNavigate("sources")}
+            aria-label="Inspect pharmacy sources"
+          >
+            <span className="section-glyph" data-tone="berry">
+              <Icon name="signal-slash" size={21} />
+            </span>
+            <div>
+              <h3>Sources without usable stock</h3>
+              <p>Searchable listings, excluded from the rate</p>
+            </div>
+            <strong className="num">{quarantined.length}</strong>
+            <Icon name="right" size={16} />
+          </button>
+        </div>
+      </section>
+      <div className="quality-register-note">
+        <Icon name="info" size={17} />
+        <p>
+          The local DrugIndex export holds{" "}
+          <b className="num">{n0(cov.brands_rows)}</b> brands and{" "}
+          <b className="num">{n0(cov.ingredients_rows)}</b> ingredient records
+          across {cov.distinct_scrape_days} record-date groups, through{" "}
+          <span className="num">
+            {String(cov.latest_updated_at ?? "").slice(0, 10) || "unknown"}
+          </span>
+          . These dates do not verify clinical revision dates.
+        </p>
+      </div>
+      <section className="quality-section">
+        <Heading
+          title="Reference coverage, field by field."
+          right
+          description="A field is covered when the local record contains a link or value. The denominator changes with the record type; missing information stays unknown."
+        />
+        <div className="quality-field-grid">
+          <article className="quality-field-panel">
+            <header>
+              <Icon name="link" size={21} />
+              <div>
+                <h3>Brand records</h3>
+                <p>
+                  <span className="num">{n0(cov.brands_rows)}</span> local
+                  records
+                </p>
+              </div>
+            </header>
+            <CoverageRow
+              label="Active ingredient"
+              count={cov.brands_with_ingredient}
+              total={cov.brands_rows}
+              tone="teal"
+            />
+            <CoverageRow
+              label="Manufacturer"
+              count={cov.brands_with_manufacturer}
+              total={cov.brands_rows}
+              tone="teal"
+            />
+            <div className="quality-field-annotation">
+              <h4>Reference matches are a starting point.</h4>
+              <p>
+                A product can reach the register without every clinical field
+                being available. Ingredient, strength, form and pack still need
+                inspection.
+              </p>
+              <dl>
+                <div>
+                  <dt>Active ingredient linked</dt>
+                  <dd className="num">
+                    {n0(cov.products_with_active_ingredient)} products
+                  </dd>
+                </div>
+                <div>
+                  <dt>Other unclassified</dt>
+                  <dd className="num">
+                    {n0(
+                      cov.products_unclassified -
+                        cov.products_awaiting_drugindex,
+                    )}{" "}
+                    products
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </article>
+          <article className="quality-field-panel">
+            <header>
+              <Icon name="medical-kit" size={21} />
+              <div>
+                <h3>Ingredient records</h3>
+                <p>
+                  <span className="num">{n0(cov.ingredients_rows)}</span> local
+                  records
+                </p>
+              </div>
+            </header>
+            {[
+              { label: "Indications", count: cov.ingredients_with_indications },
+              { label: "Dosage", count: cov.ingredients_with_dosage },
+              {
+                label: "Contraindications",
+                count: cov.ingredients_with_contraindications,
+              },
+              {
+                label: "Therapeutic category",
+                count: cov.ingredients_with_category,
+              },
+            ].map((row) => (
+              <CoverageRow
+                key={row.label}
+                {...row}
+                total={cov.ingredients_rows}
+                tone="cobalt"
+              />
+            ))}
+          </article>
+        </div>
+      </section>
+      <section className="quality-section">
+        <Heading
+          title="How listings become product identities."
+          description="Confidence describes agreement across listing evidence. It does not establish clinical suitability or interchangeability."
+        />
+        <div className="quality-matching">
+          <div className="quality-match-lead">
+            <span>High-confidence grouping</span>
+            <strong className="num">
+              {n1(
+                (100 * (stats.byMatch[D.matchBand.indexOf("high")] ?? 0)) /
+                  Math.max(1, all.length),
+              )}
+              <small>%</small>
+            </strong>
+            <p>
+              of <span className="num">{n0(all.length)}</span> resolved products
+            </p>
+            <div
+              className="quality-confidence-strip"
+              role="img"
+              aria-label={confidence
+                .map((r) => `${r.label}: ${n0(r.n)} products`)
+                .join("; ")}
+            >
+              {confidence.map((row) => (
+                <i
+                  key={row.label}
+                  data-band={row.label}
+                  style={{
+                    width: `${(100 * row.n) / Math.max(1, all.length)}%`,
+                  }}
+                />
               ))}
             </div>
-          </Section>
-        )}
-
-        <hr className="rule" />
-
-        {/* --------------------------------------------------- queues --- */}
-        <div className="quality-queues-grid">
-          <Section
-            className="quality-backlog"
-            eyebrow={`${compact(backlog.length)} products`}
-            title="Awaiting reference data"
-            actions={
-              <button className="btn btn-sm btn-ghost"
-                onClick={() => jump({ gaps: [D.gap.indexOf('di_miss')].filter((x) => x >= 0) })}>
-                Open all <Icon name="right" size={11} />
+            <small>
+              Matching version{" "}
+              <span className="num">{meta.run.match_algo_version}</span>
+            </small>
+          </div>
+          <div className="quality-confidence-ledger">
+            {confidence.map((row) => (
+              <button
+                key={row.label}
+                onClick={() => jump({ matchBands: [row.index] })}
+              >
+                <div>
+                  <h3>
+                    {row.label[0].toUpperCase() + row.label.slice(1)} confidence
+                  </h3>
+                  <p>
+                    {row.label === "high"
+                      ? "Stronger agreement across listing evidence"
+                      : row.label === "medium"
+                        ? "Inspect identity, strength, form and pack"
+                        : "Limited or conflicting matching evidence"}
+                  </p>
+                </div>
+                <div>
+                  <strong className="num">{n0(row.n)}</strong>
+                  <small className="num">
+                    {n1((100 * row.n) / Math.max(1, all.length))}%
+                  </small>
+                </div>
+                <Icon name="right" size={16} />
               </button>
-            }
-            caption="Unclassified with no register match and no usable source category. Ordered by how many pharmacies list them, so the highest-value gaps come first."
-            flush
-            fill
-          >
-            <table className="tbl">
-              <thead>
-                <tr><th>Product</th><th className="r" style={{ width: 78 }}>Listed</th></tr>
-              </thead>
-              <tbody>
-                {backlog.slice(0, QUEUE_ROWS).map((i) => (
-                  <tr key={P.key[i]}>
-                    <td className="cell-name"><button className="table-action" onClick={() => jump({ q: P.name[i] })}>{P.name[i]}</button></td>
-                    <td className="r num">{P.nListed[i]}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Section>
-
-          <Section
-            className="quality-review"
-            eyebrow="Human adjudication"
-            title="Review queue"
-            actions={
-              <button className="btn btn-sm btn-ghost" onClick={() => jump({ review: 'needs_review' })}>
-                Open all <Icon name="right" size={11} />
-              </button>
-            }
-            caption="Doubtful matches and contested classifications, ordered by pharmacy listing coverage. These are excluded from the shortage signal."
-            flush
-            fill
-          >
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th style={{ width: 96 }}>Reason</th>
-                  <th className="r" style={{ width: 70 }}>Match</th>
-                </tr>
-              </thead>
-              <tbody>
-                {review.slice(0, QUEUE_ROWS).map((i) => (
-                  <tr key={P.key[i]}>
-                    <td className="cell-name"><button className="table-action" onClick={() => jump({ q: P.name[i] })}>{P.name[i]}</button></td>
-                    <td className="tiny">
-                      {P.contested[i] ? <Tag tone="warn">class</Tag> : <Tag tone="plain">match</Tag>}
-                    </td>
-                    <td className="r num" style={{ color: 'var(--warn)' }}>{P.matchConf[i].toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Section>
-        </div>
-
-        <hr className="rule" />
-
-        {/* ----------------------------------------------- quarantine --- */}
-        <Section
-          className="quality-quarantine"
-          eyebrow="Excluded from network metrics"
-          title="Sources excluded from stock calculations"
-          caption="A feed that never emits an out-of-stock value is not a source at full availability; it is a source that does not report. Counting it as positive evidence is what inflates the unfiltered rate."
-        >
-          <div className="quality-quarantine-list">
-            {quarantined.map((p) => (
-              <div key={p.pharmacy_id} className="quality-quarantine-row">
-                <b>{p.name}</b>
-                <span className="num">{n0(p.listings)}</span>
-                <span className="dim">{p.health_detail}</span>
-              </div>
             ))}
           </div>
-          <div className="tiny dim quality-quarantine-foot">
-            Including them would move the headline from{' '}
-            <b className="num" style={{ color: 'var(--ink)' }}>{n1(h.in_stock_rate_gated)}%</b> to{' '}
-            <b className="num" style={{ color: 'var(--ink)' }}>{n1(h.in_stock_rate_raw)}%</b>, by
-            treating {n0(h.not_published)} listings with no stock signal as available.
+          <p className="quality-matching-note">
+            <Icon name="shield" size={18} />
+            Low-confidence matches and products awaiting review are excluded
+            from the repeated clinical stockout signal.
+          </p>
+        </div>
+      </section>
+      {classes.rows.length > 0 && (
+        <section className="quality-section">
+          <Heading
+            title="The therapeutic classes this reference reaches."
+            right
+            description="Classes reach products through a matched active ingredient. Browse a class to inspect its products; the remaining unclassed products are outside this breakdown."
+          />
+          <div className="quality-class-surface">
+            <header>
+              <div>
+                <strong className="num">{n0(classes.classed)}</strong>
+                <span>
+                  products across {classes.rows.length} linked classes
+                </span>
+              </div>
+              <label>
+                <Icon name="search" size={17} />
+                <input
+                  aria-label="Find a therapeutic class"
+                  placeholder="Find a therapeutic class"
+                  value={classQuery}
+                  onChange={(e) => setClassQuery(e.target.value)}
+                />
+              </label>
+            </header>
+            <div className="quality-class-explorer">
+              {classRows
+                .slice(0, moreClasses ? classRows.length : 8)
+                .map((row) => (
+                  <button
+                    key={row.index}
+                    onClick={() => jump({ therapeutic: [row.index] })}
+                  >
+                    <span>{row.name}</span>
+                    <div className="quality-class-meter" aria-hidden="true">
+                      <i
+                        style={{
+                          width: `${(100 * row.n) / Math.max(1, classes.rows[0].n)}%`,
+                        }}
+                      />
+                    </div>
+                    <strong className="num">{n0(row.n)}</strong>
+                    <Icon name="right" size={14} />
+                  </button>
+                ))}
+            </div>
+            {classRows.length === 0 && (
+              <p className="quality-empty">
+                No matching therapeutic class.{" "}
+                <button onClick={() => setClassQuery("")}>Clear search</button>
+              </p>
+            )}
+            <footer>
+              <p>
+                <span className="num">{n0(all.length - classes.classed)}</span>{" "}
+                products have no linked therapeutic class.
+              </p>
+              {classRows.length > 8 && (
+                <button onClick={() => setMoreClasses(!moreClasses)}>
+                  {moreClasses
+                    ? "Show leading classes"
+                    : `Show all ${classRows.length} classes`}
+                  <Icon name={moreClasses ? "up" : "down"} size={15} />
+                </button>
+              )}
+            </footer>
           </div>
-        </Section>
-      </div>
+        </section>
+      )}
+      <section className="quality-section">
+        <Heading
+          title="Put the next review within reach."
+          description="Start with products listed by more pharmacies. These are evidence queues for investigation, not a diagnosis of shortage or clinical equivalence."
+        />
+        <div className="quality-queue-surface">
+          <header>
+            <PillToggle
+              label="Evidence review queue"
+              value={queue}
+              onChange={(value) => {
+                setQueue(value);
+                setMoreQueue(false);
+              }}
+              options={[
+                {
+                  value: "review",
+                  label: "Product matches",
+                  count: n0(review.length),
+                },
+                {
+                  value: "reference",
+                  label: "Reference gaps",
+                  count: n0(backlog.length),
+                },
+              ]}
+            />
+            <button
+              onClick={() =>
+                queue === "review" ? jump({ review: "needs_review" }) : gaps()
+              }
+            >
+              {queue === "review"
+                ? "Review all matches"
+                : "Explore all reference gaps"}
+              <Icon name="right" size={15} />
+            </button>
+          </header>
+          <p className="quality-queue-description">
+            {queue === "review"
+              ? "Doubtful matches and contested classifications are excluded from the repeated clinical stockout signal."
+              : "Unclassified products with no register match and no usable source category."}
+          </p>
+          <div className="quality-queue-columns" aria-hidden="true">
+            <span>Product</span>
+            <span>Evidence</span>
+            <span>Sources</span>
+            <span>Match</span>
+          </div>
+          <ul
+            aria-label={
+              queue === "review"
+                ? "Product match review sample"
+                : "Reference gap sample"
+            }
+          >
+            {activeQueue.slice(0, moreQueue ? 12 : 6).map((i) => (
+              <li key={P.key[i]}>
+                <button
+                  className="quality-queue-product"
+                  onClick={() => jump({ q: P.name[i] })}
+                >
+                  {P.name[i]}
+                  <Icon name="right" size={14} />
+                </button>
+                <EvidenceBadge tone={queue === "review" ? "amber" : "cobalt"}>
+                  {queue === "reference"
+                    ? "No reference"
+                    : P.contested[i]
+                      ? "Class contested"
+                      : "Match review"}
+                </EvidenceBadge>
+                <span className="num quality-queue-sources">
+                  {P.nListed[i]}
+                  <small> listing</small>
+                </span>
+                <span className="num quality-queue-match">
+                  {P.matchConf[i].toFixed(2)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <footer>
+            <span>
+              Showing {Math.min(activeQueue.length, moreQueue ? 12 : 6)} of{" "}
+              <b className="num">{n0(activeQueue.length)}</b> products
+            </span>
+            {activeQueue.length > 6 && (
+              <button onClick={() => setMoreQueue(!moreQueue)}>
+                {moreQueue ? "Show fewer" : "Show 12 examples"}
+                <Icon name={moreQueue ? "up" : "down"} size={15} />
+              </button>
+            )}
+          </footer>
+        </div>
+      </section>
+      <section className="quality-section">
+        <Heading
+          title="Unknown stock stays outside the rate."
+          right
+          description="These sources do not publish usable stock states. Their listings remain searchable, but listing presence is not evidence that a product is available."
+        />
+        <div className="quality-stock-boundary">
+          <aside>
+            <span>Used in the headline</span>
+            <strong className="num">
+              {n1(h.in_stock_rate_gated)}
+              <small>%</small>
+            </strong>
+            <p>
+              <b className="num">{n0(h.in_stock)}</b> in-stock listings ÷{" "}
+              <b className="num">{n0(h.in_stock + h.out_of_stock)}</b> rated
+              listings
+            </p>
+            <div>
+              <Icon name="signal-slash" size={20} />
+              <p>
+                <b className="num">{n0(h.not_published)}</b> unknown listings
+                are excluded.
+              </p>
+            </div>
+            <details>
+              <summary>
+                What if unknown were counted as available?
+                <Icon name="down" size={14} />
+              </summary>
+              <p>
+                The rate would become{" "}
+                <b className="num">{n1(h.in_stock_rate_raw)}%</b>. This
+                assumption adds positive evidence that the sources did not
+                provide.
+              </p>
+            </details>
+          </aside>
+          <div className="quality-excluded-ledger">
+            <header>
+              <h3>{quarantined.length} listing-only sources</h3>
+              <button onClick={() => onNavigate("sources")}>
+                Inspect sources
+                <Icon name="right" size={14} />
+              </button>
+            </header>
+            {quarantined.map((source) => (
+              <details key={source.pharmacy_id}>
+                <summary>
+                  <PharmacyGlyph id={source.pharmacy_id} size={30} />
+                  <span>{source.name}</span>
+                  <strong className="num">{n0(source.listings)}</strong>
+                  <Icon name="down" size={14} />
+                </summary>
+                <div>
+                  <EvidenceBadge tone="neutral">
+                    Stock not reported
+                  </EvidenceBadge>
+                  <p>{source.health_detail}</p>
+                  <button onClick={() => jump({ shopsAny: [source.bit] })}>
+                    Browse {source.name} listings
+                    <Icon name="right" size={14} />
+                  </button>
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+      <details className="quality-reading-guide">
+        <summary>
+          How to interpret this evidence
+          <Icon name="down" size={17} />
+        </summary>
+        <dl>
+          <div>
+            <dt>Stock</dt>
+            <dd>
+              Only reporting sources contribute to availability. Confirm current
+              stock and price with the pharmacy.
+            </dd>
+          </div>
+          <div>
+            <dt>Matching</dt>
+            <dd>
+              Listings are grouped into product identities. Check ingredient,
+              strength, form and pack before comparing products.
+            </dd>
+          </div>
+          <div>
+            <dt>Reference</dt>
+            <dd>
+              The local reference is incomplete. A linked ingredient does not
+              establish complete or current clinical guidance.
+            </dd>
+          </div>
+        </dl>
+      </details>
     </div>
   );
 }

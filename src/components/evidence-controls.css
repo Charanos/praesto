@@ -1,0 +1,137 @@
+/* Compact visual surfaces; phone hit areas remain larger than the painted pills. */
+.evidence-badge {
+  --badge-ink: var(--ink-2);
+  --badge-fill: var(--surface);
+  --badge-line: var(--line);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1px solid var(--badge-line);
+  border-radius: var(--r-pill);
+  color: var(--badge-ink);
+  background: var(--badge-fill);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  font-weight: 500;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.evidence-badge[data-tone="out"] {
+  --badge-ink: var(--out);
+  --badge-line: var(--coral-line);
+}
+.evidence-badge[data-tone="in"] {
+  --badge-ink: var(--in);
+  --badge-line: var(--teal-line);
+}
+.evidence-badge[data-tone="teal"] {
+  --badge-ink: var(--teal);
+  --badge-line: var(--teal-line);
+}
+.evidence-badge[data-tone="cobalt"] {
+  --badge-ink: var(--cobalt);
+  --badge-line: var(--cobalt-line);
+}
+.evidence-badge[data-tone="amber"] {
+  --badge-ink: var(--amber);
+  --badge-line: var(--amber-line);
+}
+.pill-toggle {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 3px;
+  padding: var(--s-1);
+  border-radius: var(--r-pill);
+}
+.pill-toggle::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+  border-radius: inherit;
+  z-index: -1;
+}
+.pill-toggle button {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: var(--s-1) var(--s-3);
+  border-radius: var(--r-pill);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: var(--ink-2);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pill-toggle button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  transition: background var(--motion-fast);
+}
+.pill-toggle button:hover::before {
+  background: var(--surface);
+}
+.pill-toggle button[aria-pressed="true"] {
+  color: var(--text-on-inverse);
+}
+.pill-toggle button[aria-pressed="true"]::before {
+  background: var(--surface-inverse);
+  box-shadow: 0 1px 3px #17212b18;
+}
+.pill-toggle-count {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 19px;
+  padding-inline: 3px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  font-size: 11px;
+  font-weight: 400;
+}
+.pill-toggle button[aria-pressed="true"] .pill-toggle-count {
+  background: var(--surface-inverse-selected);
+  color: var(--text-on-inverse);
+}
+@media (max-width: 620px) {
+  .pill-toggle {
+    width: 100%;
+    padding-block: 0;
+  }
+  .pill-toggle::before {
+    inset-block: 4px;
+  }
+  .pill-toggle button {
+    flex: 1;
+    min-height: 44px;
+    gap: 6px;
+    padding-inline: var(--s-2);
+  }
+  .pill-toggle button::before {
+    inset-block: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill-toggle button::before {
+    transition: none;
+  }
+}
+@media (any-pointer: coarse) and (min-width: 621px) {
+  .pill-toggle button { min-height: var(--control-touch); }
+  .pill-toggle button::before { inset-block: 6px; }
+}

@@ -1,0 +1,64 @@
+{
+  "width": 1920,
+  "checks": [
+    "route reflow",
+    "desktop independent extension or mobile native filter workspace",
+    "stock and pharmacy masks plus sort",
+    "advanced facets and analysis column mode",
+    "ingredient search and virtualized keyboard rows",
+    "source stacks retained when results have room",
+    "named source glyphs and per-listing evidence",
+    "identity shortcut, source-gated clinical reference and disclosure",
+    "Escape and product focus return",
+    "empty recovery resets complete filter state",
+    "40-product contained matrix with 15 named source glyphs",
+    "chart grain, exact price counts, category and source partitions",
+    "analytics drill-down"
+  ],
+  "audits": [
+    {
+      "name": "controls",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 3
+        }
+      ],
+      "passes": 44
+    },
+    {
+      "name": "product and clinical reference",
+      "violations": [],
+      "incomplete": [],
+      "passes": 28
+    },
+    {
+      "name": "matrix",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "nodes": 7
+        },
+        {
+          "id": "color-contrast",
+          "nodes": 4
+        }
+      ],
+      "passes": 47
+    },
+    {
+      "name": "charts",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 33
+        }
+      ],
+      "passes": 48
+    }
+  ],
+  "referenceProduct": "Amoxycillin 500Mg Caps 100S"
+}

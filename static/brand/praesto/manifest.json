@@ -1,0 +1,684 @@
+{
+  "name": "Praesto",
+  "primary": "B",
+  "alternate": "A",
+  "wordmark": {
+    "family": "JetBrains Mono",
+    "weight": 550,
+    "tracking_em": -0.02,
+    "outlined": true,
+    "source_sha256": "83c005d49d8a6a50474c73a5a36ac0468076e9c4a29da7bdb14995d80560a5be"
+  },
+  "geometry": {
+    "grid": 120,
+    "stem": {
+      "x": 14,
+      "y": 14,
+      "width": 20,
+      "height": 92,
+      "radius": 10
+    },
+    "bowl_center": [
+      76,
+      45
+    ],
+    "outer_radius": 31,
+    "ring_weight": 9,
+    "split_gap": 6,
+    "favicon_split_gap": 8
+  },
+  "colors": {
+    "ink": "#17191d",
+    "light_signal": "#0a8f5a",
+    "inverse_ink": "#ffffff",
+    "dark_signal": "#3ddc97"
+  },
+  "assets": [
+    {
+      "file": "praesto-b-horizontal-light.svg",
+      "direction": "B",
+      "kind": "horizontal",
+      "accent": "light",
+      "transparent": true
+    },
+    {
+      "file": "praesto-b-stacked-light.svg",
+      "direction": "B",
+      "kind": "stacked",
+      "accent": "light",
+      "transparent": true
+    },
+    {
+      "file": "praesto-b-monogram-light.svg",
+      "direction": "B",
+      "kind": "monogram",
+      "accent": "light",
+      "transparent": true
+    },
+    {
+      "file": "praesto-b-favicon-light.svg",
+      "direction": "B",
+      "kind": "favicon",
+      "accent": "light",
+      "transparent": true
+    },
+    {
+      "file": "praesto-b-app-icon-light.svg",
+      "direction": "B",
+      "kind": "app-icon",
+      "accent": "light",
+      "transparent": true
+    },
+    {
+      "file": "praesto-b-app-tile-light.svg",
+      "direction": "B",
+      "kind": "app-tile",
+      "accent": "light",
+      "transparent": false
+    },
+    {
+      "file": "praesto-b-horizontal-dark.svg",
+      "direction": "B",
+      "kind": "horizontal",
+      "accent": "dark",
+      "transparent": true
+    },
+    {
+      "file": "praesto-b-stacked-dark.svg",
+      "direction": "B",
+      "kind": "stacked",
+      "accent": "dark",
+      "transparent": true
+    },
+    {
+      "file": "praesto-b-monogram-dark.svg",
+      "direction": "B",
+      "kind": "monogram",
+      "accent": "dark",
+      "transparent": true
+    },
+    {
+      "file": "praesto-b-favicon-dark.svg",
+      "direction": "B",
+      "kind": "favicon",
+      "accent": "dark",
+      "transparent": true
+    },
+    {
+      "file": "praesto-b-app-icon-dark.svg",
+      "direction": "B",
+      "kind": "app-icon",
+      "accent": "dark",
+      "transparent": true
+    },
+    {
+      "file": "praesto-b-app-tile-dark.svg",
+      "direction": "B",
+      "kind": "app-tile",
+      "accent": "dark",
+      "transparent": false
+    },
+    {
+      "file": "praesto-a-horizontal-light.svg",
+      "direction": "A",
+      "kind": "horizontal",
+      "accent": "light",
+      "transparent": true
+    },
+    {
+      "file": "praesto-a-stacked-light.svg",
+      "direction": "A",
+      "kind": "stacked",
+      "accent": "light",
+      "transparent": true
+    },
+    {
+      "file": "praesto-a-monogram-light.svg",
+      "direction": "A",
+      "kind": "monogram",
+      "accent": "light",
+      "transparent": true
+    },
+    {
+      "file": "praesto-a-favicon-light.svg",
+      "direction": "A",
+      "kind": "favicon",
+      "accent": "light",
+      "transparent": true
+    },
+    {
+      "file": "praesto-a-app-icon-light.svg",
+      "direction": "A",
+      "kind": "app-icon",
+      "accent": "light",
+      "transparent": true
+    },
+    {
+      "file": "praesto-a-app-tile-light.svg",
+      "direction": "A",
+      "kind": "app-tile",
+      "accent": "light",
+      "transparent": false
+    },
+    {
+      "file": "praesto-a-horizontal-dark.svg",
+      "direction": "A",
+      "kind": "horizontal",
+      "accent": "dark",
+      "transparent": true
+    },
+    {
+      "file": "praesto-a-stacked-dark.svg",
+      "direction": "A",
+      "kind": "stacked",
+      "accent": "dark",
+      "transparent": true
+    },
+    {
+      "file": "praesto-a-monogram-dark.svg",
+      "direction": "A",
+      "kind": "monogram",
+      "accent": "dark",
+      "transparent": true
+    },
+    {
+      "file": "praesto-a-favicon-dark.svg",
+      "direction": "A",
+      "kind": "favicon",
+      "accent": "dark",
+      "transparent": true
+    },
+    {
+      "file": "praesto-a-app-icon-dark.svg",
+      "direction": "A",
+      "kind": "app-icon",
+      "accent": "dark",
+      "transparent": true
+    },
+    {
+      "file": "praesto-a-app-tile-dark.svg",
+      "direction": "A",
+      "kind": "app-tile",
+      "accent": "dark",
+      "transparent": false
+    }
+  ],
+  "rasters": [
+    {
+      "file": "praesto-b-horizontal-light-1600.png",
+      "width": 1600,
+      "height": 512,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-stacked-light-960.png",
+      "width": 960,
+      "height": 660,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-monogram-light-512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-favicon-light-16.png",
+      "width": 16,
+      "height": 16,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-favicon-light-24.png",
+      "width": 24,
+      "height": 24,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-favicon-light-32.png",
+      "width": 32,
+      "height": 32,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-favicon-light-48.png",
+      "width": 48,
+      "height": 48,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-favicon-light-64.png",
+      "width": 64,
+      "height": 64,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-favicon-light-128.png",
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-app-icon-light-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-app-icon-light-512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-app-icon-light-192.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-app-icon-light-180.png",
+      "width": 180,
+      "height": 180,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-app-tile-light-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-b-app-tile-light-512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-b-app-tile-light-192.png",
+      "width": 192,
+      "height": 192,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-b-app-tile-light-180.png",
+      "width": 180,
+      "height": 180,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-b-horizontal-dark-1600.png",
+      "width": 1600,
+      "height": 512,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-stacked-dark-960.png",
+      "width": 960,
+      "height": 660,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-monogram-dark-512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-favicon-dark-16.png",
+      "width": 16,
+      "height": 16,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-favicon-dark-24.png",
+      "width": 24,
+      "height": 24,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-favicon-dark-32.png",
+      "width": 32,
+      "height": 32,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-favicon-dark-48.png",
+      "width": 48,
+      "height": 48,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-favicon-dark-64.png",
+      "width": 64,
+      "height": 64,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-favicon-dark-128.png",
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-app-icon-dark-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-app-icon-dark-512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-app-icon-dark-192.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-app-icon-dark-180.png",
+      "width": 180,
+      "height": 180,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-b-app-tile-dark-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-b-app-tile-dark-512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-b-app-tile-dark-192.png",
+      "width": 192,
+      "height": 192,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-b-app-tile-dark-180.png",
+      "width": 180,
+      "height": 180,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-a-horizontal-light-1600.png",
+      "width": 1600,
+      "height": 512,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-stacked-light-960.png",
+      "width": 960,
+      "height": 660,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-monogram-light-512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-favicon-light-16.png",
+      "width": 16,
+      "height": 16,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-favicon-light-24.png",
+      "width": 24,
+      "height": 24,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-favicon-light-32.png",
+      "width": 32,
+      "height": 32,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-favicon-light-48.png",
+      "width": 48,
+      "height": 48,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-favicon-light-64.png",
+      "width": 64,
+      "height": 64,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-favicon-light-128.png",
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-app-icon-light-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-app-icon-light-512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-app-icon-light-192.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-app-icon-light-180.png",
+      "width": 180,
+      "height": 180,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-app-tile-light-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-a-app-tile-light-512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-a-app-tile-light-192.png",
+      "width": 192,
+      "height": 192,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-a-app-tile-light-180.png",
+      "width": 180,
+      "height": 180,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-a-horizontal-dark-1600.png",
+      "width": 1600,
+      "height": 512,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-stacked-dark-960.png",
+      "width": 960,
+      "height": 660,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-monogram-dark-512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-favicon-dark-16.png",
+      "width": 16,
+      "height": 16,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-favicon-dark-24.png",
+      "width": 24,
+      "height": 24,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-favicon-dark-32.png",
+      "width": 32,
+      "height": 32,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-favicon-dark-48.png",
+      "width": 48,
+      "height": 48,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-favicon-dark-64.png",
+      "width": 64,
+      "height": 64,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-favicon-dark-128.png",
+      "width": 128,
+      "height": 128,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-app-icon-dark-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-app-icon-dark-512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-app-icon-dark-192.png",
+      "width": 192,
+      "height": 192,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-app-icon-dark-180.png",
+      "width": 180,
+      "height": 180,
+      "transparent": true,
+      "opaque": false
+    },
+    {
+      "file": "praesto-a-app-tile-dark-1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-a-app-tile-dark-512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-a-app-tile-dark-192.png",
+      "width": 192,
+      "height": 192,
+      "transparent": false,
+      "opaque": true
+    },
+    {
+      "file": "praesto-a-app-tile-dark-180.png",
+      "width": 180,
+      "height": 180,
+      "transparent": false,
+      "opaque": true
+    }
+  ]
+}

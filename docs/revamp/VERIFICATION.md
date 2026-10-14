@@ -56,3 +56,15 @@ Lighthouse 13.5.0 audited the production bundle using its default mobile configu
 These are lab samples, not guarantees or field measurements. Catalogue TBT remains above 200ms in the final sample and varies across runs; earlier post-optimization samples measured 156–160ms. The intentional noindex policy yields SEO 63 for interactive views. Noindex was retained; scores were not raised by changing that policy. See full reports and `performance-summary.json` for settings, timestamps and raw measurements.
 
 Reproduce with a production preview on port 4173 and `npm exec --yes --package=lighthouse@13.5.0 -- lighthouse "http://127.0.0.1:4173/?v=catalogue" --chrome-flags="--headless=new" --no-enable-error-reporting --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=report.json`. Fault fixtures run through `node qa/fixture-server.mjs`; `KPAD_TEST_SCENARIO` selects `retry`, `corrupt` or `slow`. Fixtures bind only to localhost and are excluded from deployment.
+
+## Praesto full-surface overhaul · 14 October 2026
+
+The current implementation replaces the Overview, Catalogue, Sources and Data Quality layouts, console, product modal and select primitives. Earlier reports above describe earlier commits and are not the release status of this overhaul.
+
+- 29 tests, 96 local pipeline contract assertions, TypeScript, formatting, lint and Vite build passed. The curated static/app files remain byte-identical.
+- Catalogue workflows at 1280 and 375px pass thirteen checks each, including the shared custom select inside the native filter dialog, named listing evidence, identity/clinical tabs, Escape/focus return, exact chart bins, matrix and drill-downs. Four audited states at each width report zero violations; incomplete results remain recorded.
+- Sources and Data Quality workflows at 320/375/1280px pass eleven checks each. Evidence includes 15/8/7 partitions, source record fields, exact product table, six coverage denominators, class search/full expansion, queue switching, source diagnostics and exact low-confidence drill-down (172 products). Three expanded states at each width report zero axe violations; incomplete contrast results are retained.
+- Pagination was exercised through Next, direct page 437, disabled final-page Next, First and Back to top. Page two begins at the next product, the final range is 43,601–43,606, page changes restore top position, and Back to top restores H1 focus.
+- Dynamic favicon unit coverage verifies initial light, dark change, light change and listener cleanup. SVG also has a prefers-color-scheme fallback; PNG variants retain theme media queries. The application itself stays light.
+
+Evidence: evidence/overview-overhaul/catalogue/review-1280.json, review-375.json; evidence-pages/review-320.json, review-375.json, review-1280.json and associated real UI captures. Manual screen-reader/contrast follow-through remains distinct from automated results. Licensed clinical feed activation and new snapshot promotion remain gated.

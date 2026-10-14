@@ -1,0 +1,49 @@
+{
+  "method": "Lighthouse 13.5.0 default mobile simulated throttling; fresh headless Chrome; serial route runs",
+  "rows": [
+    {
+      "route": "overview",
+      "fetchTime": "2026-10-14T16:15:45.077Z",
+      "performance": 84,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "seo": 66,
+      "lcpMs": 2496.8174,
+      "tbtMs": 337.5,
+      "cls": 0.02139222629286277
+    },
+    {
+      "route": "catalogue",
+      "fetchTime": "2026-10-14T16:10:20.570Z",
+      "performance": 94,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "seo": 66,
+      "lcpMs": 2335.5855,
+      "tbtMs": 187.50000000000023,
+      "cls": 0.0001903263134361559
+    },
+    {
+      "route": "sources",
+      "fetchTime": "2026-10-14T16:16:22.269Z",
+      "performance": 94,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "seo": 66,
+      "lcpMs": 2458.206,
+      "tbtMs": 163,
+      "cls": 0.0002300194544857501
+    },
+    {
+      "route": "quality",
+      "fetchTime": "2026-10-14T16:15:13.758Z",
+      "performance": 93,
+      "accessibility": 100,
+      "bestPractices": 100,
+      "seo": 66,
+      "lcpMs": 2463.1416,
+      "tbtMs": 194.5,
+      "cls": 0.0001903263134361559
+    }
+  ]
+}

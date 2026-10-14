@@ -1,0 +1,313 @@
+/* A compact editorial lead with two supporting notes. No shared row stretching. */
+.attention-bento {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: var(--s-4-5);
+  align-items: stretch;
+}
+.attention-tile {
+  --attention-ink: var(--coral);
+  background: var(--coral-soft);
+  border-radius: 20px;
+  padding: var(--s-5-5);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.attention-primary {
+  grid-row: span 2;
+}
+.attention-support[data-tone="teal"] {
+  --attention-ink: var(--teal);
+  background: var(--teal-soft);
+}
+.attention-support[data-tone="amber"] {
+  --attention-ink: var(--amber);
+  background: var(--amber-soft);
+}
+.attention-tile > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  color: var(--attention-ink);
+}
+.attention-tile .eyebrow {
+  color: inherit;
+  font-size: var(--text-sm);
+  line-height: 1.65;
+}
+.attention-tile .brief-glyph {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  color: inherit;
+  background: var(--surface);
+  border-radius: var(--r-inset);
+}
+.attention-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4-5);
+  margin-top: 18px;
+}
+.attention-value {
+  color: var(--attention-ink);
+  font-weight: 400;
+  font-size: var(--text-metric-xl);
+  line-height: 1.15;
+  letter-spacing: -0.065em;
+}
+.attention-heading h3 {
+  font-family: var(--serif);
+  font-size: var(--text-panel-display);
+  line-height: 1.2;
+  font-weight: 400;
+  max-width: 16ch;
+}
+.attention-tile > p {
+  color: var(--ink-2);
+  font-size: var(--text-body-comfort);
+  line-height: 1.75;
+  margin: var(--s-4) 0 0;
+}
+.attention-tile footer {
+  margin-top: auto;
+  padding-top: var(--s-4-5);
+}
+.attention-tile footer .brief-link {
+  font-size: var(--text-base);
+  min-height: 40px;
+}
+.attention-support .attention-heading {
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-top: var(--s-3);
+}
+.attention-support .attention-value {
+  order: 2;
+  font-size: var(--text-panel-display);
+  white-space: nowrap;
+}
+.attention-support .attention-heading h3 {
+  font-size: var(--text-panel-title);
+  max-width: none;
+}
+.attention-support > p {
+  font-size: var(--text-base);
+  margin-top: var(--s-3);
+}
+.attention-support footer {
+  padding-top: var(--s-3);
+}
+.attention-primary > .attention-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4-5);
+  font-size: var(--text-sm);
+  margin-top: 18px;
+}
+.attention-context b {
+  color: var(--attention-ink);
+  font-weight: 500;
+}
+.attention-signals {
+  margin: 22px 0 0;
+  padding: var(--s-4);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.attention-signals figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px var(--s-3);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  margin-bottom: 10px;
+}
+.attention-signals figcaption > span {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.attention-signal-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.attention-signal-rows > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  text-align: left;
+  min-height: 36px;
+  padding-block: 6px;
+  border-radius: 6px;
+}
+.attention-signal-rows > button:hover .attention-signal-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.attention-signal-name {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.attention-signal-marks {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.attention-signal-marks i {
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 20px;
+  background: var(--surface-sunk);
+  border-radius: 3px;
+  color: var(--ink-3);
+  font: 12px var(--mono);
+}
+.attention-signal-marks [data-state="In stock"] {
+  color: var(--in);
+  background: var(--in-soft);
+}
+.attention-signal-marks [data-state="Out of stock"] {
+  color: var(--out);
+  background: var(--out-soft);
+}
+.attention-signal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) 14px;
+  margin-top: 10px;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+.attention-signal-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.attention-signal-legend i {
+  font-style: normal;
+}
+.attention-signal-legend [data-state="Out of stock"] {
+  color: var(--out);
+}
+.attention-signal-legend [data-state="In stock"] {
+  color: var(--in);
+}
+@media (max-width: 1100px) {
+  .attention-bento {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .attention-primary {
+    grid-row: auto;
+  }
+  .attention-support .attention-heading h3 {
+    max-width: none;
+  }
+}
+@media (max-width: 620px) {
+  .attention-bento {
+    gap: var(--s-4-5);
+  }
+  .attention-tile {
+    padding: var(--s-5);
+  }
+  .attention-heading {
+    align-items: flex-start;
+    gap: var(--s-4);
+  }
+  .attention-heading h3 {
+    font-size: var(--text-panel-title);
+  }
+  .attention-value {
+    font-size: var(--text-metric-xl);
+  }
+  .attention-tile > p {
+    font-size: var(--text-body-comfort);
+  }
+  .attention-support .attention-heading {
+    flex-wrap: wrap;
+  }
+  .attention-support .attention-value {
+    order: 0;
+  }
+  .attention-support .attention-heading h3 {
+    font-size: var(--text-panel-title);
+  }
+  .attention-signals {
+    padding: 14px;
+  }
+  .attention-signal-rows > button {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s-2);
+    padding-block: 10px;
+    min-height: 44px;
+  }
+  .attention-signal-name {
+    white-space: normal;
+    overflow: visible;
+    font-size: var(--text-base);
+  }
+  .attention-signal-marks {
+    width: 100%;
+    gap: var(--s-1);
+  }
+  .attention-signal-marks i {
+    flex: 1;
+    height: 18px;
+  }
+}
+/* The lead reads across; supporting tiles share one compact row below it. */
+@media (min-width: 1101px) {
+  .attention-bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .attention-primary {
+    grid-column: 1/-1;
+    grid-row: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+    column-gap: 40px;
+  }
+  .attention-primary > header {
+    grid-column: 1;
+  }
+  .attention-primary > .attention-heading {
+    grid-column: 1;
+    margin-top: var(--s-3);
+  }
+  .attention-primary .attention-heading h3 {
+    max-width: none;
+  }
+  .attention-primary > p {
+    grid-column: 1;
+  }
+  .attention-primary > .attention-signals {
+    grid-column: 2;
+    grid-row: 1/6;
+    margin: 0;
+    align-self: center;
+    padding: var(--s-4-5);
+  }
+  .attention-primary > footer {
+    grid-column: 1;
+    padding-top: var(--s-3);
+  }
+  .attention-support {
+    padding-block: var(--s-5);
+  }
+  .attention-support footer {
+    margin-top: var(--s-1);
+  }
+}

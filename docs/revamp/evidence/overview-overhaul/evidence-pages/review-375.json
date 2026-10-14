@@ -1,0 +1,51 @@
+{
+  "width": 375,
+  "checks": [
+    "15/8/7 source partitions and unknown rates",
+    "source sorting, search, empty recovery and collection disclosure",
+    "source catalogue drill-down",
+    "product-grain table, overlap caveat and all sources",
+    "six coverage denominators and exact missing counts",
+    "therapeutic class search, recovery and complete expansion",
+    "switchable review queue and 12-product expansion",
+    "unknown-stock calculation sensitivity and seven source diagnostics",
+    "review queue filter contract",
+    "reference gap filter contract",
+    "match-band drill-down returns exact products"
+  ],
+  "audits": [
+    {
+      "name": "source record",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 42
+        }
+      ],
+      "passes": 48
+    },
+    {
+      "name": "source evidence and missing capture",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 106
+        }
+      ],
+      "passes": 53
+    },
+    {
+      "name": "quality expanded evidence",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 124
+        }
+      ],
+      "passes": 48
+    }
+  ]
+}

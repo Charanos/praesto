@@ -1,0 +1,56 @@
+{
+  "width": 1280,
+  "passed": [
+    "Recharts ring",
+    "single-row evidence expansion",
+    "3/12 rows",
+    "both queues",
+    "sample-to-named-evidence and focus",
+    "source ordering",
+    "8 reporting/7 listed-only sources",
+    "8 categories",
+    "coverage groups",
+    "stockout groups",
+    "exact price table",
+    "sensitivity with unchanged headline",
+    "provenance",
+    "footer"
+  ],
+  "groups": [
+    "2",
+    "155",
+    "15,453",
+    "27,996"
+  ],
+  "priceCounts": [
+    "2,575",
+    "4,203",
+    "7,437",
+    "14,166",
+    "9,625",
+    "4,027",
+    "1,368"
+  ],
+  "focus": "watchlist-product-title",
+  "axe": {
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 79
+      }
+    ],
+    "passes": 53
+  },
+  "reflow": {
+    "footer": "Stock and prices reflect collected pharmacy listings. Confirm current availability and price with the pharmacy.Data notes© 2026 Praesto. All rights reserved.ByAndishi",
+    "headingAlignments": [
+      "right",
+      "right",
+      "left",
+      "right"
+    ],
+    "overflow": false,
+    "width": 1280
+  }
+}

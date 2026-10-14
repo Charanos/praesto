@@ -1,0 +1,110 @@
+[
+  {
+    "documentOverflow": false,
+    "headings": [
+      "right",
+      "start",
+      "right",
+      "start"
+    ],
+    "stockBadges": [
+      26,
+      26
+    ],
+    "toggle": [
+      {
+        "height": 44,
+        "overflow": false,
+        "width": 125
+      },
+      {
+        "height": 44,
+        "overflow": false,
+        "width": 125
+      }
+    ],
+    "width": 320,
+    "workspaceOverflow": false
+  },
+  {
+    "documentOverflow": false,
+    "headings": [
+      "right",
+      "start",
+      "right",
+      "start"
+    ],
+    "stockBadges": [
+      26,
+      26
+    ],
+    "toggle": [
+      {
+        "height": 32,
+        "overflow": false,
+        "width": 109
+      },
+      {
+        "height": 32,
+        "overflow": false,
+        "width": 142
+      }
+    ],
+    "width": 768,
+    "workspaceOverflow": false
+  },
+  {
+    "documentOverflow": false,
+    "headings": [
+      "right",
+      "start",
+      "right",
+      "start"
+    ],
+    "stockBadges": [
+      26,
+      26
+    ],
+    "toggle": [
+      {
+        "height": 32,
+        "overflow": false,
+        "width": 109
+      },
+      {
+        "height": 32,
+        "overflow": false,
+        "width": 142
+      }
+    ],
+    "width": 1280,
+    "workspaceOverflow": false
+  },
+  {
+    "documentOverflow": false,
+    "headings": [
+      "right",
+      "start",
+      "right",
+      "start"
+    ],
+    "stockBadges": [
+      26,
+      26
+    ],
+    "toggle": [
+      {
+        "height": 32,
+        "overflow": false,
+        "width": 109
+      },
+      {
+        "height": 32,
+        "overflow": false,
+        "width": 142
+      }
+    ],
+    "width": 1920,
+    "workspaceOverflow": false
+  }
+]

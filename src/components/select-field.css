@@ -1,0 +1,17 @@
+.select-trigger { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; width: 100%; min-height: 40px; padding: 6px 0; border: 0; background: transparent; color: inherit; text-align: left; font: 15px/1.6 var(--sans); cursor: pointer; }
+.select-trigger > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select-trigger > span:last-child { display: grid; place-items: center; flex-shrink: 0; color: var(--ink-3); }
+.select-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+.select-popover { --menu-surface: #fff; --menu-ink: #17191d; --menu-muted: #59616d; --menu-hover: #f0f4f2; --menu-active: #0b4f49; --menu-line: #e2e5e9; min-width: var(--radix-select-trigger-width); max-width: min(380px,calc(100vw - 24px)); max-height: min(360px,var(--radix-select-content-available-height)); overflow: hidden; background: var(--menu-surface); color: var(--menu-ink); border: 1px solid var(--menu-line); border-radius: 14px; box-shadow: 0 10px 32px #17191d1c, 0 2px 6px #17191d0a; z-index: 120; font-family: var(--sans); transform-origin: var(--radix-select-content-transform-origin); animation: select-enter 120ms ease-out; }
+.select-popover[data-tone="inverse"] { --menu-surface: #1b1f24; --menu-ink: #f4f6f8; --menu-muted: #aab4c2; --menu-hover: #28322f; --menu-active: #93ddc8; --menu-line: #39414b; box-shadow: 0 12px 36px #0004, inset 0 1px 0 #ffffff07; }
+.select-options { padding: 6px; }
+.select-option { position: relative; display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 8px 34px 8px 12px; font-size: 15px; line-height: 1.5; border-radius: 8px; outline: 0; cursor: default; user-select: none; }
+.select-option[data-highlighted] { background: var(--menu-hover); color: var(--menu-active); }
+.select-option[data-state="checked"] { color: var(--menu-active); font-weight: 650; }
+.select-option[data-disabled] { color: var(--menu-muted); opacity: .5; }
+.select-option-icon { display: grid; place-items: center; flex-shrink: 0; }
+.select-option-check { position: absolute; right: 11px; top: calc(50% - 7.5px); color: var(--menu-active); }
+.select-scroll { display: grid; place-items: center; height: 26px; color: var(--menu-muted); background: var(--menu-surface); }
+@keyframes select-enter { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width:760px) { .select-trigger { min-height: 44px; font-size: 16px; } .select-option { min-height: 44px; font-size: 16px; } }
+@media (prefers-reduced-motion:reduce) { .select-popover { animation: none; } }

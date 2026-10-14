@@ -1,0 +1,28 @@
+/* Separate groups with space; reserve rules for genuinely tabular evidence. */
+.brief-section[data-align="right"] .brief-section-action {
+  order: -1;
+  margin-left: 0;
+  margin-right: auto;
+}
+.brief-section[data-align="right"] .brief-section-head p {
+  margin-left: auto;
+}
+.overview-brief .brief-section {
+  margin-top: var(--s-8);
+}
+.overview-brief .brief-section-head {
+  border: 0;
+  padding-top: 0;
+  gap: var(--s-5);
+  margin-bottom: var(--s-6);
+}
+.overview-brief .brief-glyph {
+  border: 0;
+  border-radius: 13px;
+}
+@media (max-width: 620px) {
+  .overview-brief .brief-section-head {
+    gap: var(--s-3);
+    margin-bottom: var(--s-5);
+  }
+}

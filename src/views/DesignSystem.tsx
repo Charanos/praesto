@@ -1,8 +1,14 @@
 import { useState } from "react";
 import Modal from "../components/Modal";
 import { Icon, glyphs } from "../components/icons";
+import { EvidenceBadge, PillToggle } from "../components/EvidenceControls";
+import PharmacyGlyph, {
+  pharmacyGlyphs,
+  PharmacyStack,
+} from "../components/PharmacyGlyph";
 export default function DesignSystem() {
   const [open, setOpen] = useState(false);
+  const [evidence, setEvidence] = useState("stockouts");
   return (
     <div className="page">
       <div className="eyebrow">Development catalogue</div>
@@ -10,6 +16,32 @@ export default function DesignSystem() {
       <p className="sub">
         One light palette. Clear states. Product identity before decoration.
       </p>
+      <section className="section">
+        <h2 className="section-title">Pharmacy source glyphs</h2>
+        <p className="sub">
+          Original Praesto identifiers. Shape and accent identify a source; they
+          do not indicate stock status.
+        </p>
+        <div className="pharmacy-glyph-gallery">
+          {Object.keys(pharmacyGlyphs).map((id) => (
+            <div key={id}>
+              <PharmacyGlyph id={id} size={44} />
+              <span>{id}</span>
+              <PharmacyGlyph id={id} size={24} />
+            </div>
+          ))}
+        </div>
+        <div className="design-samples">
+          <PharmacyStack
+            shops={[
+              { pharmacy_id: "garnet", name: "Garnet Pharmacy" },
+              { pharmacy_id: "pharmily", name: "Pharmily" },
+              { pharmacy_id: "healthyu", name: "HealthyU" },
+              { pharmacy_id: "goodlife", name: "Goodlife Pharmacy" },
+            ]}
+          />
+        </div>
+      </section>
       <section className="section">
         <h2 className="section-title">Actions and fields</h2>
         <div className="design-samples">
@@ -51,6 +83,25 @@ export default function DesignSystem() {
         <div className="feedback">
           <p>Example recovery state: source listings could not load.</p>
           <button className="btn">Retry source listings</button>
+        </div>
+      </section>
+      <section className="section">
+        <h2 className="section-title">Evidence controls</h2>
+        <div className="design-samples">
+          <EvidenceBadge tone="in">In stock</EvidenceBadge>
+          <EvidenceBadge tone="out">Out of stock</EvidenceBadge>
+          <EvidenceBadge>Stock unknown</EvidenceBadge>
+          <EvidenceBadge tone="cobalt">Matching evidence</EvidenceBadge>
+          <EvidenceBadge tone="amber">Needs review</EvidenceBadge>
+          <PillToggle
+            label="Example evidence selection"
+            value={evidence}
+            options={[
+              { value: "stockouts", label: "Stockouts" },
+              { value: "coverage", label: "Broad coverage" },
+            ]}
+            onChange={setEvidence}
+          />
         </div>
       </section>
       <section className="section">

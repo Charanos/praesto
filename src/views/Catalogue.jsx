@@ -7,8 +7,20 @@
  * without losing your place.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Modal from '../components/Modal.tsx';
+import CatalogueToolbar from '../components/CatalogueToolbar';
+import CatalogueResultRow from '../components/CatalogueResultRow';
+import CatalogueFilterWorkspace from '../components/CatalogueFilterWorkspace';
+import './product-reader.css';
+import CataloguePagination from '../components/CataloguePagination';
+import CatalogueMatrix from '../components/CatalogueMatrix';
+import CatalogueSelectionStats from '../components/CatalogueSelectionStats';
+import PharmacyGlyph, { PharmacyStack } from '../components/PharmacyGlyph';
+import { useCatalogueDesktop } from '../components/useCatalogueDesktop';
+const CatalogueAnalytics = lazy(() => import('../components/CatalogueAnalytics'));
+import { EvidenceBadge } from '../components/EvidenceControls';
 import ClinicalReader from '../components/ClinicalReader.tsx';
 import { useSmallScreen } from '../components/useSmallScreen.ts';
 import {
@@ -17,12 +29,12 @@ import {
 } from '../lib/filters.js';
 import { loadListings, listingsFor, popcount } from '../lib/store.js';
 import {
-  Section, Icon, Tag, Chip, StateTag, Strip, Empty, Facet, Check, RangePair,
-  n0, n1, kes, compact, useVirtual,
+  Icon, Tag, Strip, Empty, Facet, Check, RangePair,
+  n0, kes, compact, useVirtual,
 } from '../components/ui.jsx';
-import { useTip, useMeasure, SourceBars, TypeMix, PriceCurve, BandSteps, Matrix } from '../components/charts.jsx';
+import { useTip, useMeasure } from '../components/charts.jsx';
 
-const ROW_H = 56;
+const ROW_H = 72;
 const EMPTY_STATS = {clinical:0,oosAny:0,avgListed:0,withMono:0,price:{p10:null,p50:null,p90:null},prices:[],byType:[],byBand:[]};
 
 /**
@@ -55,21 +67,37 @@ const COLUMNS = [
   { key: 'conf', label: 'Match', sort: 'conf', w: '56px', r: true, needs: 660 },
 ];
 
-export default function Catalogue({ store, filters, setFilters, tipHost }) {
+export default function Catalogue({ store, filters, setFilters, tipHost, controlsDock, controlsDocked, onDockChange }) {
   const { P, D, shops } = store;
   const [sort, setSort] = useState({ key: 'relevance', dir: 'desc' });
   const [selected, setSelected] = useState(null);
   const [view, setView] = useState('grid');
   const mobile = useSmallScreen();
-  const [showFacets, setShowFacets] = useState(false);
+  const rowHeight = mobile ? 104 : ROW_H;
+  const desktop = useCatalogueDesktop();
+  const [mobileControlsOpen, setMobileControlsOpen] = useState(false);
+  const showFacets = desktop ? controlsDocked : mobileControlsOpen;
+  const setShowFacets = (open) => desktop ? onDockChange(open) : setMobileControlsOpen(open);
   const [analysisColumns, setAnalysisColumns] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const viewportRef = useRef(null);
+  const scrollHeaderRef = useRef(null);
   const tip = useTip();
 
   const patch = (p) => setFilters({ ...filters, ...p });
 
   const { rows } = useMemo(() => runFilter(store, filters, sort), [store, filters, sort]);
+  const [paging, setPaging] = useState({ rowSet: null, page: 0, size: 100 });
+  const pageCount = paging.size ? Math.max(1, Math.ceil(rows.length / paging.size)) : 1;
+  const page = paging.rowSet === rows ? Math.min(paging.page, pageCount - 1) : 0;
+  const visibleRows = paging.size ? rows.slice(page * paging.size, (page + 1) * paging.size) : rows;
+  const [showTop, setShowTop] = useState(false);
+  useEffect(() => { viewportRef.current?.scrollTo({top:0}); }, [rows, page, paging.size, view]);
+  const goPage = next => {
+    setPaging({rowSet:rows,page:Math.max(0,Math.min(pageCount - 1,next)),size:paging.size});
+    requestAnimationFrame(() => requestAnimationFrame(() => viewportRef.current?.querySelector('[data-product-index]')?.focus({preventScroll:true})));
+  };
+  const setPageSize = size => setPaging({rowSet:rows,page:0,size});
   const stats = useMemo(() => showFacets || summaryOpen || view==='charts' ? summarise(store, rows) : EMPTY_STATS, [store, rows,showFacets,summaryOpen,view]);
   const sources = useMemo(() => view==='charts' ? sourceBreakdown(store, rows) : [], [store, rows,view]);
 
@@ -104,7 +132,7 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
   const shopN = useMemo(() => showFacets ? shopCounts(store, filters, 'shopsAny') : {listed:[],inStock:[],oos:[]}, [store, filters,showFacets]);
 
   const chips = activeChips(filters, store);
-  const range = useVirtual({ count: rows.length, rowHeight: ROW_H, viewportRef });
+  const range = useVirtual({ count: visibleRows.length, rowHeight, viewportRef, offsetRef: scrollHeaderRef });
 
   const toggle = (key, value) => {
     const cur = filters[key];
@@ -123,7 +151,7 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
   // Until the container reports a width, assume it is wide: showing every
   // column then dropping some is far less jarring than the reverse.
   const columns = useMemo(
-    () => mobile ? [COLUMNS[0], { ...COLUMNS[2], label: 'Stock / price', w: '118px' }] : analysisColumns ? COLUMNS.filter((c) => !c.needs || gridWidth === 0 || gridWidth >= c.needs) : [COLUMNS[0], { ...COLUMNS[2], label: 'Stock reports', w: '160px' }, ...(gridWidth > 620 ? [{ ...COLUMNS[3], label: 'Sources', w: '72px' }] : []), { ...COLUMNS[6], label: 'Listed median', w: '110px' }],
+    () => mobile ? [COLUMNS[0], { ...COLUMNS[2], label: 'Stock / price', w: '118px' }] : analysisColumns ? COLUMNS.filter((c) => !c.needs || gridWidth === 0 || gridWidth >= c.needs) : [COLUMNS[0], { ...COLUMNS[2], label: 'Stock reports', w: '172px' }, ...(gridWidth > 820 ? [{ ...COLUMNS[3], label: 'Pharmacies', w: '112px' }] : []), { ...COLUMNS[6], label: 'Listed median', w: '132px' }],
     [gridWidth, mobile, analysisColumns],
   );
   const gridTemplate = columns.map((c) => c.w).join(' ');
@@ -135,17 +163,7 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
     : sameBits(filters.stockOut) && !filters.stockIn.length ? 'out' : 'custom';
 
   const facetPanel = (
-    <aside className="catalogue-facets" aria-label="Catalogue filters">
-          <div className="catalogue-facet-top">
-            <div className="row">
-              <h2 className="h3" id="filter-title">Refine results</h2>
-              <button className="btn btn-icon filter-close" aria-label="Close filters" onClick={() => setShowFacets(false)}><Icon name="x" size={16} /></button>
-              <button className="btn btn-ghost btn-sm spacer"
-                onClick={() => setFilters({ ...EMPTY })}
-                disabled={!chips.length}>Reset</button>
-            </div>
-          </div>
-
+    <div className="catalogue-facets">
           <div className="facets">
             <div className="facet-body"><Check label="Show analysis columns" on={analysisColumns} onChange={() => setAnalysisColumns(!analysisColumns)} /></div>
             <Facet title="Product type" count={filters.types.length || null} defaultOpen>
@@ -192,7 +210,7 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
             }>
               <div className="micro dim" style={{ marginBottom: 5 }}>Listed in any of</div>
               {shops.map((s) => (
-                <Check key={s.pharmacy_id} label={s.name} n={shopN.listed[s.bit]}
+                <Check key={s.pharmacy_id} label={<span className="catalogue-source-choice"><PharmacyGlyph id={s.pharmacy_id} size={26}/>{s.name}</span>} ariaLabel={`Listed at ${s.name}`} n={shopN.listed[s.bit]}
                   on={filters.shopsAny.includes(s.bit)} onChange={() => toggle('shopsAny', s.bit)} />
               ))}
               <details className="source-filter-group"><summary>Listed in every selected pharmacy</summary>
@@ -203,7 +221,7 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
               </details>
               <div className="micro dim" style={{ margin: '10px 0 5px' }}>Out of stock at</div>
               {shops.filter((s) => s.publishes_oos).map((s) => (
-                <Check key={s.pharmacy_id} label={s.name} n={shopN.oos[s.bit]}
+                <Check key={s.pharmacy_id} label={s.name} ariaLabel={`Out of stock at ${s.name}`} n={shopN.oos[s.bit]}
                   on={filters.stockOut.includes(s.bit)} onChange={() => toggle('stockOut', s.bit)} />
               ))}
             </Facet>
@@ -287,130 +305,42 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
               </label>
             </Facet>
           </div>
-        </aside>
+        </div>
   );
 
+  const resultHeader = (<CatalogueToolbar filters={filters} shops={shops} count={rows.length} total={P.n} stockChoice={stockChoice} sort={sort} onSort={setSort} pageSize={paging.size} onPageSize={setPageSize} view={view} onView={setView} onPatch={patch} onRefine={() => setShowFacets(!showFacets)} controlsOpen={showFacets} onReset={() => setFilters({ ...EMPTY })} chips={chips}/>);
+
   return (
-    <div className={`catalogue-shell${showFacets ? ' facets-open' : ''}`}>
+    <div className="catalogue-shell">
       {tip.node}
 
-      {/* ---------------------------------------------------------- facets */}
-      {showFacets && (mobile ? <Modal className="filter-dialog" labelledBy="filter-title" onClose={() => setShowFacets(false)}>
-        {facetPanel}
-        <div className="filter-footer"><button className="btn btn-primary" onClick={() => setShowFacets(false)}>Show {n0(rows.length)} results</button></div>
-      </Modal> : facetPanel)}
-
-      {/* ------------------------------------------------------------ main */}
-      <div className="catalogue-main" ref={gridRef}>
-        <div className="catalogue-count-row"><span className="catalogue-result-count" role="status" aria-live="polite">{n0(rows.length)} results</span></div>
-        {/* toolbar */}
-        <div className="catalogue-toolbar">
-          <div className="catalogue-command-row">
-            <button className="btn" onClick={() => setShowFacets(!showFacets)}
-              aria-label={showFacets ? 'Hide more filters' : 'More filters'} aria-expanded={showFacets}>
-              <Icon name="filter" size={14} /><span>More filters</span>
-            </button>
-            <button className={`btn ${filters.clinicalOnly ? 'quick-selected' : ''}`} aria-pressed={filters.clinicalOnly}
-              onClick={() => patch({ clinicalOnly: !filters.clinicalOnly, types: [] })}>Medicines &amp; devices</button>
-            <div className="seg catalogue-view-switch">
-              {[['grid', 'List'], ['matrix', 'Matrix'], ['charts', 'Charts']].map(([v, l]) => (
-                <button key={v} aria-pressed={view === v} onClick={() => setView(v)}>{l}</button>
-              ))}
-            </div>
-            <span className="num tiny dim nowrap catalogue-result-total">
-              {n0(rows.length)} of {compact(P.n)}
-            </span>
-          </div>
-
-          <div className="quick-filters">
-            <label>Stock evidence<select value={stockChoice} onChange={(event) => patch({ stockIn: event.target.value === 'in' ? reportingBits : [], stockOut: event.target.value === 'out' ? reportingBits : [] })}>
-              <option value="all">Any reported state</option><option value="in">In stock somewhere</option><option value="out">Out of stock somewhere</option>{stockChoice === 'custom' && <option value="custom">Custom stock selection</option>}
-            </select></label>
-            <label>Pharmacy<select value={filters.shopsAny.length === 1 ? filters.shopsAny[0] : filters.shopsAny.length ? 'custom' : 'all'} onChange={(event) => patch({ shopsAny: event.target.value === 'all' ? [] : [Number(event.target.value)] })}>
-              <option value="all">All pharmacies</option>{shops.map(shop => <option key={shop.bit} value={shop.bit}>{shop.name}</option>)}{filters.shopsAny.length > 1 && <option value="custom">Multiple pharmacies</option>}
-            </select></label>
-            <label className="catalogue-sort">Sort results<select value={`${sort.key}:${sort.dir}`} onChange={(event) => { const [key, dir] = event.target.value.split(':'); setSort({ key, dir }); }}>
-              <option value="relevance:desc">Most stockout reports</option><option value="name:desc">Product name A–Z</option><option value="name:asc">Product name Z–A</option>
-              <option value="price:asc">Listed median price · low first</option><option value="price:desc">Listed median price · high first</option><option value="listed:desc">Most pharmacies listing</option>
-              <option value="oos:desc">Out-of-stock source count</option><option value="instock:desc">In-stock source count</option><option value="oosShare:desc">Out-of-stock share</option><option value="conf:desc">Highest match confidence</option><option value="listings:desc">Most listings</option>
-              {!['relevance:desc','name:desc','name:asc','price:asc','price:desc','listed:desc','oos:desc','instock:desc','oosShare:desc','conf:desc','listings:desc'].includes(`${sort.key}:${sort.dir}`) && <option value={`${sort.key}:${sort.dir}`}>Current column sort</option>}
-            </select></label>
-          </div>
-          {chips.length > 0 && (
-            <div className="catalogue-chip-row">
-              {chips.map((c) => (
-                <Chip key={c.key} active onClear={() => patch(c.clear)}>{c.label}</Chip>
-              ))}
-              <button className="btn btn-ghost btn-sm" onClick={() => setFilters({ ...EMPTY })}>
-                Clear all
-              </button>
-            </div>
-          )}
+      {showFacets && desktop && controlsDock && createPortal(<aside className="catalogue-control-extension" id="catalogue-controls" aria-label="Catalogue controls">
+        <header className="catalogue-extension-head"><div><h2>Refine catalogue.</h2><p>Scope &amp; evidence</p></div><button aria-label="Collapse catalogue controls" onClick={() => setShowFacets(false)}><Icon name="x" size={18}/></button></header>
+        <div className="catalogue-extension-scroll">
+          <CatalogueToolbar mode="controls" tone={desktop ? "inverse" : "light"} filters={filters} shops={shops} count={rows.length} total={P.n} stockChoice={stockChoice} sort={sort} onSort={setSort} pageSize={paging.size} onPageSize={setPageSize} view={view} onView={setView} onPatch={patch} onRefine={() => setShowFacets(false)} onReset={() => setFilters({ ...EMPTY })} chips={chips}/>
+          <CatalogueSelectionStats stats={stats} onToggle={setSummaryOpen}/>{facetPanel}
         </div>
+      </aside>, controlsDock)}
+      {showFacets && !desktop && <CatalogueFilterWorkspace count={rows.length} activeCount={chips.length} onClose={() => setShowFacets(false)} onReset={() => setFilters({ ...EMPTY })}>
+        <div id="catalogue-controls"><CatalogueToolbar mode="controls" tone={desktop ? "inverse" : "light"} filters={filters} shops={shops} count={rows.length} total={P.n} stockChoice={stockChoice} sort={sort} onSort={setSort} pageSize={paging.size} onPageSize={setPageSize} view={view} onView={setView} onPatch={patch} onRefine={() => setShowFacets(false)} onReset={() => setFilters({ ...EMPTY })} chips={chips}/><CatalogueSelectionStats stats={stats} onToggle={setSummaryOpen}/>{facetPanel}</div>
+      </CatalogueFilterWorkspace>}
+      <div className="catalogue-main" ref={gridRef} onScrollCapture={e => { if(e.target === viewportRef.current) setShowTop(e.target.scrollTop > 360); }}>
 
-        {/* result summary strip */}
-        <details className="catalogue-selection-summary" onToggle={event=>setSummaryOpen(event.currentTarget.open)}><summary>Selection statistics</summary><div className="provenance catalogue-telemetry">
-          <span><b className="num" style={{ color: 'var(--ink)' }}>{n0(stats.clinical)}</b> clinical</span>
-          <span className="sep">·</span>
-          <span><b className="num" style={{ color: 'var(--ink)' }}>{n0(stats.oosAny)}</b> with a stockout</span>
-          <span className="sep">·</span>
-          <span>avg <b className="num" style={{ color: 'var(--ink)' }}>{n1(stats.avgListed)}</b> pharmacies listing</span>
-          <span className="sep">·</span>
-          <span>median <b className="num" style={{ color: 'var(--ink)' }}>{kes(stats.price.p50)}</b></span>
-          <span className="sep">·</span>
-          <span><b className="num" style={{ color: 'var(--ink)' }}>{n0(stats.withMono)}</b> reference-linked</span>
-        </div></details>
 
-        <p className="catalogue-mobile-note">Open a product to compare pharmacy listings and prices.</p>
         {/* body */}
         {rows.length === 0 ? (
-          <Empty
+          <div ref={viewportRef} className="scroll">{resultHeader}<Empty
             title="Nothing matches those filters"
             note="Try a shorter product name, another ingredient, or clear a pharmacy or price filter."
             action={<button className="btn" onClick={() => setFilters({ ...EMPTY })}>Reset filters</button>}
-          />
+          /></div>
         ) : view === 'charts' ? (
-          <div className="scroll">
-            <div className="page catalogue-chart-grid">
-              <Section eyebrow="Selection" title="Availability by source">
-                <SourceBars rows={sources} tip={tip} selected={filters.shopsAny}
-                  onPick={(bit) => toggle('shopsAny', bit)} />
-              </Section>
-              <Section eyebrow="Selection" title="Price distribution"
-                caption="Log-scaled. Dashed rules mark p10 and p90; solid rule is the median.">
-                <PriceCurve prices={stats.prices} p10={stats.price.p10}
-                  p50={stats.price.p50} p90={stats.price.p90} tip={tip} />
-              </Section>
-              <Section eyebrow="Selection" title="Classification mix">
-                <TypeMix counts={stats.byType} labels={store.D.type} tip={tip}
-                  selected={filters.types} onPick={(i) => toggle('types', i)} />
-              </Section>
-              <Section eyebrow="Selection" title="Shortage bands">
-                <BandSteps counts={stats.byBand} labels={store.D.band} tip={tip}
-                  selected={filters.bands} onPick={(i) => toggle('bands', i)} />
-              </Section>
-            </div>
-          </div>
+          <div ref={viewportRef} className="scroll">{resultHeader}<Suspense fallback={<p className="catalogue-analysis-loading" role="status">Loading selection charts…</p>}><CatalogueAnalytics stats={stats} sources={sources} total={rows.length} types={D.type} bandLabels={D.band} selectedTypes={filters.types} selectedBands={filters.bands} selectedSources={filters.shopsAny} onType={index => toggle('types',index)} onBand={index => toggle('bands',index)} onSource={bit => toggle('shopsAny',bit)}/></Suspense></div>
         ) : view === 'matrix' ? (
-          <div className="scroll">
-            <div className="page catalogue-matrix-page">
-              <Section
-                eyebrow={`${n0(rows.length)} products · showing first 40`}
-                title="Availability matrix"
-                caption="* marks a source that publishes no out-of-stock signal; its cells show listing presence only."
-              >
-                <div className="legend" style={{ marginBottom: 14 }}>
-                  <span><i className="cell-in" /> In stock</span>
-                  <span><i className="cell-out" /> Out of stock</span>
-                  <span><i className="cell-nosig" /> No stock signal</span>
-                  <span><i className="cell-none" /> Not listed</span>
-                </div>
-                <Matrix store={store} rows={rows} limit={40} tip={tip} onPick={setSelected} />
-              </Section>
-            </div>
-          </div>
+          <div ref={viewportRef} className="scroll">{resultHeader}<CatalogueMatrix store={store} rows={rows} onPick={setSelected}/></div>
         ) : (
-          <>
+          <div ref={viewportRef} className="scroll catalogue-grid-scroll" role="region" aria-label="Product results" tabIndex={0}>
+            <div ref={scrollHeaderRef} className="catalogue-scroll-header">{resultHeader}
             <div className="catalogue-grid-head" style={{ gridTemplateColumns: gridTemplate }}>
               {columns.map((c) => (
                 <button key={c.key}
@@ -435,21 +365,22 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
               ))}
             </div>
 
-            <div ref={viewportRef} className="scroll catalogue-grid-scroll" role="region" aria-label="Product results" tabIndex={0}>
-              <div style={{ height: rows.length * ROW_H, position: 'relative' }}>
-                <div style={{ transform: `translateY(${range.start * ROW_H}px)` }}>
-                  {rows.slice(range.start, range.end).map((i) => (
-                    <Row key={P.key[i]} store={store} i={i} tip={tip}
+            </div>
+              <div style={{ height: visibleRows.length * rowHeight, position: 'relative' }}>
+                <div style={{ transform: `translateY(${range.start * rowHeight}px)` }}>
+                  {visibleRows.slice(range.start, range.end).map((i) => (
+                    <Row key={P.key[i]} store={store} i={i} tip={tip} analysis={analysisColumns && !mobile} mobile={mobile}
                       template={gridTemplate} columns={columns}
                       active={selected === i}
                       onSelect={() => setSelected(i)}
-                      onMove={(direction) => { const index = Math.max(0, Math.min(rows.length - 1, rows.indexOf(i) + direction)); viewportRef.current.scrollTop = Math.max(0, index * ROW_H - ROW_H); requestAnimationFrame(() => requestAnimationFrame(() => document.querySelector(`[data-product-index="${rows[index]}"]`)?.focus())); }} />
+                      onMove={(direction) => { const index = Math.max(0, Math.min(visibleRows.length - 1, visibleRows.indexOf(i) + direction)); viewportRef.current.scrollTop = Math.max(0, index * rowHeight + (scrollHeaderRef.current?.offsetHeight ?? 0) - rowHeight); requestAnimationFrame(() => requestAnimationFrame(() => document.querySelector(`[data-product-index="${visibleRows[index]}"]`)?.focus())); }} />
                   ))}
                 </div>
               </div>
+              <CataloguePagination page={page} size={paging.size} total={rows.length} onPage={goPage}/>
             </div>
-          </>
         )}
+        {showTop && <button className="catalogue-back-top" aria-label="Back to top" onClick={() => { viewportRef.current?.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'}); viewportRef.current?.querySelector('h1')?.focus({preventScroll:true}); }}><Icon name="up-to-line" size={21}/></button>}
       </div>
 
       {selected != null && (
@@ -521,8 +452,9 @@ const CELL = {
   },
 };
 
-function Row({ store, i, template, columns, active, onSelect, onMove, tip }) {
+function Row({ store, i, template, columns, active, onSelect, onMove, tip, analysis, mobile }) {
   const { P, D } = store;
+  if (!analysis) return <CatalogueResultRow pharmacies={store.shops.filter(s => P.listedMask[i] & (1 << s.bit))} index={i} name={P.name[i]} ingredient={P.ingredient[i] >= 0 ? D.ingredient[P.ingredient[i]] : null} sourceCount={P.nListed[i]} inStock={popcount(P.inMask[i])} out={popcount(P.oosMask[i])} price={P.priceMed[i]} active={active} onSelect={onSelect} onMove={onMove} template={mobile ? undefined : template} showSources={!mobile && columns.some(c => c.key === 'listed')} />;
   return (
     <button
       type="button"
@@ -580,61 +512,24 @@ function Detail({ store, i, onClose, onPick, tip }) {
   }, [store, i, attempt]);
 
   const band = D.band[P.band[i]];
+  const [section, setSection] = useState('product-listings');
   const jumpTo = id => {
-    const target = document.getElementById(id);
-    if (!target) return;
-    if (target.tagName === 'DETAILS') target.open = true;
-    target.scrollIntoView({block:'start'});
-    target.focus({preventScroll:true});
+    setSection(id);
+    requestAnimationFrame(() => { const target=document.getElementById(id); if(!target)return; if(target.tagName==='DETAILS')target.open=true; target.focus({preventScroll:true}); });
   };
+  const namedSources = store.shops.filter(shop => P.listedMask[i] & (1 << shop.bit));
 
   return (
-    <Modal className="drawer" labelledBy="product-title" onClose={onClose}>
-        <header className="drawer-head">
-          <div className="row">
-            <span className="eyebrow">Resolved product</span>
-            <button className="btn btn-icon btn-sm btn-ghost spacer" onClick={onClose} aria-label="Close">
-              <Icon name="x" size={14} />
-            </button>
-          </div>
-          <h2 className="h2 drawer-title" id="product-title">{P.name[i]}</h2>
-          <p className="detail-ingredient">{P.ingredient[i] >= 0 ? D.ingredient[P.ingredient[i]] : 'Active ingredient not linked in the local reference'}</p>
-          <div className="row wrap drawer-tags">
-            <Tag tone={P.clinical[i] ? 'accent' : 'plain'}>{D.type[P.type[i]].replace(/_/g, ' ')}</Tag>
-            {band !== 'none' && <Tag tone={P.nOos[i] >= 3 ? 'out' : 'plain'}>{band}</Tag>}
-            {D.review[P.review[i]] === 'needs_review' && <Tag tone="warn">needs review</Tag>}
-            {P.contested[i] === 1 && <Tag tone="warn">contested class</Tag>}
-          </div>
-        </header>
-
-        <nav className="detail-section-nav" aria-label="Product detail sections"><button onClick={()=>jumpTo('product-listings')}>Pharmacy listings</button>{P.ingredient[i]>=0 && <button onClick={()=>jumpTo('product-reference')}>Clinical reference</button>}<button onClick={()=>jumpTo('product-identity')}>Product identity</button></nav>
-        <div className="drawer-body">
-          <p className="detail-caveat">Snapshot evidence · collection date inferred. Confirm current stock and price before visiting.</p>
-          <div className="kpis">
-            <div className="kpi">
-              <div className="kpi-label">Pharmacies listing</div>
-              <div className="kpi-value" style={{ fontSize: 'var(--text-lg)' }}>{P.nListed[i]}</div>
-              <div className="kpi-note">of {store.shops.length} sources</div>
-            </div>
-            <div className="kpi">
-              <div className="kpi-label">Report out of stock</div>
-              <div className="kpi-value" style={{ fontSize: 'var(--text-lg)', color: P.nOos[i] ? 'var(--out)' : undefined }}>
-                {popcount(P.oosMask[i])}
-              </div>
-              <div className="kpi-note">of {P.nEligible[i]} reporting</div>
-            </div>
-            <div className="kpi">
-              <div className="kpi-label">Listed median price</div>
-              <div className="kpi-value" style={{ fontSize: 'var(--text-lg)' }}>
-                {kes(P.priceMed[i])}
-              </div>
-              <div className="kpi-note">
-                {Number.isFinite(P.priceMin[i]) ? `${n0(P.priceMin[i])}–${n0(P.priceMax[i])}` : 'no price'}
-              </div>
-            </div>
-          </div>
-
-          <div className="drawer-section" id="product-listings" tabIndex={-1}><h3>Pharmacy listings &amp; prices</h3>
+    <Modal className="drawer product-reader" labelledBy="product-title" onClose={onClose}>
+      <header className="product-reader-head">
+        <div className="product-reader-heading"><h2 id="product-title">{P.name[i]}</h2><p>{P.ingredient[i]>=0 ? D.ingredient[P.ingredient[i]] : 'Active ingredient not linked in the local reference'}</p></div>
+        <button className="product-reader-close" aria-label="Close" onClick={onClose}><Icon name="x" size={19}/></button>
+        <div className="product-reader-badges"><EvidenceBadge tone={P.clinical[i] ? 'teal':'neutral'}>{D.type[P.type[i]].replaceAll('_',' ')}</EvidenceBadge>{band!=='none'&&<EvidenceBadge tone={P.nOos[i]>=3?'out':'neutral'}>{band}</EvidenceBadge>}{D.review[P.review[i]]==='needs_review'&&<EvidenceBadge tone="amber">Needs review</EvidenceBadge>}{P.contested[i]===1&&<EvidenceBadge tone="amber">Contested class</EvidenceBadge>}</div>
+      </header>
+      <nav className="product-reader-nav" aria-label="Product detail sections"><button aria-pressed={section==='product-listings'} onClick={()=>jumpTo('product-listings')}>Pharmacy listings</button>{P.ingredient[i]>=0&&<button aria-pressed={section==='product-reference'} onClick={()=>jumpTo('product-reference')}>Clinical reference</button>}<button aria-pressed={section==='product-identity'} onClick={()=>jumpTo('product-identity')}>Product identity</button></nav>
+      <div className="product-reader-content">
+        <div className="product-reader-main">
+          <div hidden={section!=='product-listings'}>          <div className="product-evidence-panel" id="product-listings" tabIndex={-1}><h3>Pharmacy listings &amp; prices</h3>
           <p className="reader-intro">Each row is a collected listing. “Stock not reported” means the source does not provide a usable stock signal.</p>
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -643,8 +538,8 @@ function Detail({ store, i, onClose, onPick, tip }) {
           ) : listingError ? <div className="feedback" role="alert"><p>Source listings could not load for this snapshot. Try loading them again.</p><button className="btn" onClick={() => setAttempt(a => a + 1)}>Retry source listings</button></div> : (
             <ul className="source-observations" aria-label="Pharmacy listings and prices">
               {listings?.map((listing, key) => <li className="source-observation" key={key}>
-                <div className="observation-identity"><h4>{listing.shop.name}</h4><span className="observation-name">{listing.rawName}</span></div>
-                <div className="observation-evidence"><StateTag state={listing.state} /><span className="observation-price num">{kes(listing.price)}</span></div>
+                <div className="observation-identity"><PharmacyGlyph id={listing.shop.pharmacy_id} size={36}/><div><h4>{listing.shop.name}</h4><span className="observation-name">{listing.rawName}</span></div></div>
+                <div className="observation-evidence"><EvidenceBadge tone={listing.state === 'in_stock' ? 'in' : listing.state === 'out_of_stock' ? 'out' : 'neutral'}>{listing.state === 'in_stock' ? 'In stock' : listing.state === 'out_of_stock' ? 'Out of stock' : 'Stock not reported'}</EvidenceBadge><span className="observation-price num">{kes(listing.price)}</span></div>
                 {listing.url && /^https?:\/\//i.test(listing.url) && <a className="btn observation-link" href={listing.url} target="_blank" rel="noopener noreferrer" aria-label={`View listing at ${listing.shop.name}`}>View listing <Icon name="external" size={14} /></a>}
               </li>)}
             </ul>
@@ -652,59 +547,8 @@ function Detail({ store, i, onClose, onPick, tip }) {
 
           </div>
 
-          <details className="drawer-section secondary-detail" id="product-identity" tabIndex={-1}>
-            <summary>Product identity &amp; matching details</summary>
-            <dl className="kv">
-            <dt>Match key</dt>
-            <dd className="mono micro" style={{ wordBreak: 'break-all' }}>{P.key[i]}</dd>
-            <dt>Match confidence</dt>
-            <dd className="num">{P.matchConf[i].toFixed(3)} · {D.matchBand[P.matchBand[i]]}</dd>
-            {P.matchFlags[i] >= 0 && (<><dt>Match notes</dt><dd className="tiny dim">{D.matchFlags[P.matchFlags[i]]}</dd></>)}
-            {Number.isFinite(P.priceCv[i]) && (<><dt>Price spread</dt><dd className="num">cv {P.priceCv[i].toFixed(2)}</dd></>)}
-            <dt>Dose form</dt>
-            <dd>{P.form[i] >= 0 ? D.form[P.form[i]] : <span className="faint">not detected</span>}</dd>
-            <dt>Pack</dt>
-            <dd className="mono micro">{P.packSig[i] || <span className="faint">—</span>}</dd>
-            <dt>Class confidence</dt>
-            <dd className="num">{P.classConf[i].toFixed(2)}</dd>
-              {P.gap[i] >= 0 && (<><dt>Classification gap</dt><dd><Tag tone="warn">{D.gap[P.gap[i]]}</Tag></dd></>)}
-            </dl>
-          </details>
-
-          {substitutes.length > 0 && (
-            <details className="drawer-section secondary-detail">
-              <summary>Other products with this ingredient</summary>
-              <table className="tbl">
-                <tbody>
-                  {substitutes.map((s) => (
-                    <tr key={P.key[s]}>
-                      <td style={{ paddingLeft: 0 }}>
-                        <button className="table-action" onClick={() => onPick?.(s)}>{P.name[s]}</button>
-                        <div className="trunc drawer-source-raw">
-                          {popcount(P.inMask[s])} of {P.nListed[s]} sources report in stock
-                        </div>
-                      </td>
-                      <td className="r" style={{ width: 86 }}>
-                        {popcount(P.inMask[s]) > 0
-                          ? <Tag tone="in">{popcount(P.inMask[s])} in stock</Tag>
-                          : <Tag tone="out">no in-stock reports</Tag>}
-                      </td>
-                      <td className="num r" style={{ width: 62, fontSize: 'var(--text-xs)' }}>
-                        {Number.isFinite(P.priceMed[s]) ? n0(P.priceMed[s]) : '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="tiny dim" style={{ marginTop: 10, lineHeight: 1.5 }}>
-                These products share an active ingredient; their strength, form and pack may differ.
-                Same molecule is not the same product — check strength and form before
-                treating one as a substitute for another.
-              </div>
-            </details>
-          )}
-
-          {P.ingredient[i] >= 0 && (
+</div>
+          <div hidden={section!=='product-reference'}>          {P.ingredient[i] >= 0 && (
             <div className="drawer-section">
               <h3>Drug register extract</h3>
               <dl className="kv">
@@ -721,8 +565,69 @@ function Detail({ store, i, onClose, onPick, tip }) {
             </div>
           )}
           {P.ingredient[i] >= 0 && <ClinicalReader key={D.ingredient[P.ingredient[i]]} ingredient={D.ingredient[P.ingredient[i]]} />}
-          <p className="reader-intro">Stock and prices reflect collected listings. Confirm current availability and price with the pharmacy.</p>
+</div>
+          <div hidden={section!=='product-identity'}>          <details className="product-identity-panel" id="product-identity" tabIndex={-1}>
+            <summary>Product identity &amp; matching details</summary>
+            <dl className="kv">
+            <dt>Match key</dt>
+            <dd className="mono micro" style={{ wordBreak: 'break-all' }}>{P.key[i]}</dd>
+            <dt>Match confidence</dt>
+            <dd className="num">{P.matchConf[i].toFixed(3)} · {D.matchBand[P.matchBand[i]]}</dd>
+            {P.matchFlags[i] >= 0 && (<><dt>Match notes</dt><dd className="tiny dim">{D.matchFlags[P.matchFlags[i]]}</dd></>)}
+            {Number.isFinite(P.priceCv[i]) && (<><dt>Price spread</dt><dd className="num">cv {P.priceCv[i].toFixed(2)}</dd></>)}
+            <dt>Dose form</dt>
+            <dd>{P.form[i] >= 0 ? D.form[P.form[i]] : <span className="faint">not detected</span>}</dd>
+            <dt>Pack</dt>
+            <dd className="mono micro">{P.packSig[i] || <span className="faint">—</span>}</dd>
+            <dt>Class confidence</dt>
+            <dd className="num">{P.classConf[i].toFixed(2)}</dd>
+              {P.gap[i] >= 0 && (<><dt>Classification gap</dt><dd><EvidenceBadge tone="amber">{D.gap[P.gap[i]]}</EvidenceBadge></dd></>)}
+            </dl>
+          </details>
+
+          {substitutes.length > 0 && (
+            <details className="product-related">
+              <summary>Other products with this ingredient</summary>
+              <table className="tbl">
+                <tbody>
+                  {substitutes.map((s) => (
+                    <tr key={P.key[s]}>
+                      <td style={{ paddingLeft: 0 }}>
+                        <button className="table-action" onClick={() => { onPick?.(s); setSection("product-listings"); }}>{P.name[s]}</button>
+                        <div className="trunc drawer-source-raw">
+                          {popcount(P.inMask[s])} of {P.nListed[s]} sources report in stock
+                        </div>
+                      </td>
+                      <td className="r" style={{ width: 86 }}>
+                        {popcount(P.inMask[s]) > 0
+                          ? <EvidenceBadge tone="in">{popcount(P.inMask[s])} in stock</EvidenceBadge>
+                          : <EvidenceBadge tone="out">no in-stock reports</EvidenceBadge>}
+                      </td>
+                      <td className="num r" style={{ width: 62, fontSize: 'var(--text-xs)' }}>
+                        {Number.isFinite(P.priceMed[s]) ? n0(P.priceMed[s]) : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="tiny dim" style={{ marginTop: 10, lineHeight: 1.5 }}>
+                These products share an active ingredient; their strength, form and pack may differ.
+                Same molecule is not the same product — check strength and form before
+                treating one as a substitute for another.
+              </div>
+            </details>
+          )}
+
+</div>
         </div>
+        <aside className="product-reader-context" aria-label="Product snapshot context">
+          <div className="product-context-price"><span>Listed median price</span><strong className="num">{kes(P.priceMed[i])}</strong><small>{Number.isFinite(P.priceMin[i]) ? 'Range KES '+n0(P.priceMin[i])+'–'+n0(P.priceMax[i]) : 'No positive listed price supplied'}</small></div>
+          <div className="product-context-sources"><span>{P.nListed[i]} pharmacies listing</span><PharmacyStack shops={namedSources}/><p>of {store.shops.length} captured sources</p></div>
+          <dl className="product-context-stock"><div><dt>Report in stock</dt><dd className="num" data-state="in">{popcount(P.inMask[i])}</dd></div><div><dt>Report out of stock</dt><dd className="num" data-state="out">{popcount(P.oosMask[i])}</dd></div><div><dt>Stock-reporting sources</dt><dd className="num">{P.nEligible[i]}</dd></div></dl>
+          <div className="product-context-match"><span>Product match</span><strong className="num">{P.matchConf[i].toFixed(3)}</strong><small>{D.matchBand[P.matchBand[i]]} confidence · inspect identity tab</small></div>
+          <p className="product-context-note"><Icon name="clock" size={16}/>Snapshot evidence. Collection date inferred; confirm current stock and price with the pharmacy.</p>
+        </aside>
+      </div>
     </Modal>
   );
 }

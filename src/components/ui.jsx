@@ -142,10 +142,10 @@ export function Facet({ title, count, defaultOpen = false, children }) {
   );
 }
 
-export function Check({ on, onChange, label, n }) {
+export function Check({ on, onChange, label, ariaLabel, n }) {
   return (
     <label className="facet-opt" data-on={on}>
-      <input type="checkbox" checked={on} onChange={onChange} aria-label={label}
+      <input type="checkbox" checked={on} onChange={onChange} aria-label={ariaLabel ?? (typeof label === 'string' ? label : undefined)}
         style={{
           width: 16, height: 16, flexShrink: 0,
           border: `1px solid ${on ? 'var(--accent)' : 'var(--line-strong)'}`,
@@ -201,7 +201,7 @@ export function usePopover() {
  * the shape of the data -- scrolling a continuous list is how you feel that a
  * filter matched 12 things or 12,000.
  */
-export function useVirtual({ count, rowHeight, viewportRef, overscan = 12 }) {
+export function useVirtual({ count, rowHeight, viewportRef, offsetRef, overscan = 12 }) {
   const [range, setRange] = useState({ start: 0, end: 40 });
   // Tracking the node in state, not just in a ref, is what makes this survive
   // a view switch. A ref does not re-run the effect when the element it points
@@ -220,7 +220,8 @@ export function useVirtual({ count, rowHeight, viewportRef, overscan = 12 }) {
     const recalc = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        const start = Math.max(0, Math.floor(el.scrollTop / rowHeight) - overscan);
+        const offset = offsetRef?.current?.offsetHeight ?? 0;
+        const start = Math.max(0, Math.floor(Math.max(0, el.scrollTop - offset) / rowHeight) - overscan);
         const visible = Math.ceil(el.clientHeight / rowHeight) + overscan * 2;
         setRange({ start, end: Math.min(count, start + visible) });
       });
@@ -229,8 +230,9 @@ export function useVirtual({ count, rowHeight, viewportRef, overscan = 12 }) {
     el.addEventListener('scroll', recalc, { passive: true });
     const ro = new ResizeObserver(recalc);
     ro.observe(el);
+    if (offsetRef?.current) ro.observe(offsetRef.current);
     return () => { el.removeEventListener('scroll', recalc); ro.disconnect(); cancelAnimationFrame(frame); };
-  }, [count, rowHeight, overscan, node]);
+  }, [count, rowHeight, overscan, node, offsetRef]);
 
   // Never hand back a window past the end of the current result set: a filter
   // that shrinks the rows under a scrolled viewport would otherwise slice past

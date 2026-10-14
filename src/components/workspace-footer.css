@@ -1,0 +1,94 @@
+.workspace-footer {
+  max-width: 1480px;
+  width: 100%;
+  margin: var(--s-5) auto 0;
+  padding: var(--s-5) var(--s-6) var(--s-5-5);
+  color: var(--ink-3);
+}
+.workspace-footer::before {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-bottom: var(--s-5);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--line) 12%,
+    var(--line) 88%,
+    transparent
+  );
+}
+.workspace-footer-evidence {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--s-3) var(--s-5);
+  font-size: var(--text-sm);
+  line-height: 1.8;
+}
+.workspace-footer-evidence > p {
+  max-width: 80ch;
+}
+.workspace-footer-evidence > a {
+  color: var(--teal);
+  text-decoration: none;
+  min-height: 24px;
+}
+.workspace-footer-evidence > a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.workspace-footer-credit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-3) var(--s-5);
+  margin-top: var(--s-4-5);
+  font-size: var(--text-sm);
+  line-height: 1.8;
+}
+.workspace-footer-credit > p > span {
+  white-space: nowrap;
+}
+.workspace-footer-credit > a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  min-height: 24px;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.workspace-footer-credit > a > span:first-child {
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+}
+.workspace-footer-credit > a > strong {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: var(--text-body-comfort);
+  letter-spacing: -0.02em;
+}
+.workspace-footer-credit > a > svg {
+  color: var(--teal);
+  font-size: var(--text-sm);
+}
+.workspace-footer-credit > a:hover > strong {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 620px) {
+  .workspace-footer {
+    padding: var(--s-4-5) var(--s-5) 80px;
+  }
+  .workspace-footer-evidence > a,
+  .workspace-footer-credit > a {
+    min-height: 44px;
+    align-items: center;
+  }
+  .workspace-footer-credit {
+    margin-top: var(--s-3);
+  }
+}

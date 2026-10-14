@@ -9,18 +9,22 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { buildCsv } from './lib/export.js';
 import { loadStore } from './lib/store-loader.js';
+import { installAdaptiveFavicon } from './lib/favicon';
 import { encodeFilters, decodeFilters } from './lib/filters.js';
 import { Icon, fmtDate } from './components/ui.jsx';
-import Overview from './views/Overview.jsx';
-import Catalogue from './views/Catalogue.jsx';
-import Sources from './views/Sources.jsx';
-import Quality from './views/Quality.jsx';
+import WorkspaceFooter from "./components/WorkspaceFooter.tsx";
+
+
+
+
 import './workspace.css';
 import './console.css';
 import './sections.css';
+import './views/catalogue-overhaul.css';
 import { ConsoleSidebar, ConsoleTopbar, destinations as NAV } from './components/ConsoleShell.tsx';
 import OfflineNotice from './components/OfflineNotice.tsx';
 import WorkspaceIntro from './components/WorkspaceIntro';
+import WorkspaceView from './components/WorkspaceView';
 const DesignSystem = import.meta.env.DEV ? lazy(() => import('./views/DesignSystem.tsx')) : null;
 const DevAudit = import.meta.env.DEV ? lazy(() => import('./components/DevAudit.tsx')) : null;
 
@@ -29,7 +33,14 @@ function readUrl() {
   return { view: [...NAV.map(n => n.id), ...(import.meta.env.DEV ? ['design'] : [])].includes(p.get('v')) ? p.get('v') : 'overview', filters: decodeFilters(p), audit: import.meta.env.DEV && p.has('audit') };
 }
 
+const viewLoaders = {overview: () => import('./views/Overview.tsx'), catalogue: () => import('./views/Catalogue.jsx'), sources: () => import('./views/Sources.jsx'), quality: () => import('./views/Quality.jsx')};
+const Overview = lazy(viewLoaders.overview);
+const Catalogue = lazy(viewLoaders.catalogue);
+const Sources = lazy(viewLoaders.sources);
+const Quality = lazy(viewLoaders.quality);
+
 export default function App() {
+  useEffect(installAdaptiveFavicon, []);
   const [store, setStore] = useState(null);
   const [loadingMeta, setLoadingMeta] = useState(null);
   const [error, setError] = useState(null);
@@ -37,7 +48,11 @@ export default function App() {
 
   const initial = useMemo(readUrl, []);
   const [view, setView] = useState(initial.view);
+  // Prepare only the active presentation alongside the verified data read.
+  useEffect(() => { void viewLoaders[view]?.().catch(() => {}); }, [view]);
   const [filters, setFilters] = useState(initial.filters);
+  const [controlsDock, setControlsDock] = useState(null);
+  const [controlsDocked, setControlsDocked] = useState(true);
   useEffect(() => {
     let alive = true;
     const controller = new AbortController();
@@ -79,7 +94,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  useEffect(() => { document.title = `${NAV.find(n => n.id === view)?.label || 'Design system'} · Kenya Pharmacy Availability`; }, [view]);
+  useEffect(() => { document.title = `${NAV.find(n => n.id === view)?.label || 'Design system'} · Praesto`; }, [view]);
 
   const navigate = useCallback((v) => setView(v), []);
 
@@ -100,25 +115,26 @@ export default function App() {
   const snapshot = { id: meta?.run.snapshot_id ?? 'Loading…', date: snapshotDate, inferred: meta?.run.snapshot_at_inferred ?? false, contract: meta?.contract_version ?? '—', match: meta?.run.match_algo_version ?? '—', loading:!meta };
 
   return (
-    <div className="app" data-ready={!!store}>
+    <div className="app" data-ready={!!store} data-catalogue-controls={view === 'catalogue' && controlsDocked}>
       <a className="skip-link" href="#workspace">Skip to workspace</a>
-      <ConsoleSidebar view={view} onNavigate={navigate} productCount={meta?.headline.products ?? null} sourceCount={meta?.headline.pharmacies ?? null} snapshot={snapshot} />
+      <ConsoleSidebar view={view} onNavigate={navigate} productCount={meta?.headline.products ?? null} sourceCount={meta?.headline.pharmacies ?? null} snapshot={snapshot} catalogueControlsOpen={controlsDocked} onToggleCatalogueControls={() => setControlsDocked(open => !open)} />
 
+      <div className="console-control-dock" ref={setControlsDock} hidden={view !== 'catalogue' || !controlsDocked} />
       <main className="main" id="workspace" tabIndex={-1}>
         <OfflineNotice />
-        <ConsoleTopbar view={view} query={filters.q} onSearch={(query) => { setFilters({ ...filters, q: query }); setView('catalogue'); }} onExport={() => store && exportCsv(store, filters)} exportReady={!!store} snapshot={snapshot} />
+        <ConsoleTopbar view={view} query={filters.q} onHome={() => navigate('overview')} onSearch={(query) => { setFilters({ ...filters, q: query }); setView('catalogue'); }} onExport={() => store && exportCsv(store, filters)} exportReady={!!store} snapshot={snapshot} />
 
         {view === 'catalogue' ? (
-          <div className="catalogue-workspace"><WorkspaceIntro view={view} />{store ? <Catalogue store={store} filters={filters} setFilters={setFilters} /> : <Loading progress={progress} />}</div>
+          <div className="catalogue-workspace">{store ? <WorkspaceView name="catalogue"><Catalogue store={store} filters={filters} setFilters={setFilters} controlsDock={controlsDock} controlsDocked={controlsDocked} onDockChange={setControlsDocked} /></WorkspaceView> : <Loading progress={progress} />}</div>
         ) : (
-          <div className="scroll">
+          <div className="scroll" key={view}>
             <WorkspaceIntro view={view} />
             {!store && <Loading progress={progress} />}
-            {store && view === 'overview' && <Overview store={store} onNavigate={navigate} setFilters={setFilters} />}
-            {store && view === 'sources' && <Sources store={store} onNavigate={navigate} setFilters={setFilters} />}
-            {store && view === 'quality' && <Quality store={store} onNavigate={navigate} setFilters={setFilters} />}
+            {store && view === 'overview' && <WorkspaceView name="overview"><Overview store={store} onNavigate={navigate} setFilters={setFilters} /><WorkspaceFooter /></WorkspaceView>}
+            {store && view === 'sources' && <WorkspaceView name="sources"><Sources store={store} onNavigate={navigate} setFilters={setFilters} /><WorkspaceFooter /></WorkspaceView>}
+            {store && view === 'quality' && <WorkspaceView name="quality"><Quality store={store} onNavigate={navigate} setFilters={setFilters} /><WorkspaceFooter /></WorkspaceView>}
             {view === 'design' && DesignSystem && <Suspense fallback={<p>Loading component catalogue…</p>}><DesignSystem /></Suspense>}
-            {store && <footer className="workspace-foot">Stock and prices reflect collected pharmacy listings. Confirm current availability and price with the pharmacy. <a href="/about.html" className="table-action">Data notes</a></footer>}
+            {store && view === 'design' && <WorkspaceFooter />}
           </div>
         )}
       </main>

@@ -1,0 +1,52 @@
+[
+  {
+    "categoryOverflow": false,
+    "categoryRows": 8,
+    "coverageOverflow": false,
+    "documentOverflow": false,
+    "headingAlign": "start",
+    "treemapRects": 8,
+    "width": 320,
+    "workspaceOverflow": false
+  },
+  {
+    "categoryOverflow": false,
+    "categoryRows": 8,
+    "coverageOverflow": false,
+    "documentOverflow": false,
+    "headingAlign": "start",
+    "treemapRects": 8,
+    "width": 375,
+    "workspaceOverflow": false
+  },
+  {
+    "categoryOverflow": false,
+    "categoryRows": 8,
+    "coverageOverflow": false,
+    "documentOverflow": false,
+    "headingAlign": "start",
+    "treemapRects": 8,
+    "width": 768,
+    "workspaceOverflow": false
+  },
+  {
+    "categoryOverflow": false,
+    "categoryRows": 8,
+    "coverageOverflow": false,
+    "documentOverflow": false,
+    "headingAlign": "start",
+    "treemapRects": 8,
+    "width": 1280,
+    "workspaceOverflow": false
+  },
+  {
+    "categoryOverflow": false,
+    "categoryRows": 8,
+    "coverageOverflow": false,
+    "documentOverflow": false,
+    "headingAlign": "start",
+    "treemapRects": 8,
+    "width": 1920,
+    "workspaceOverflow": false
+  }
+]

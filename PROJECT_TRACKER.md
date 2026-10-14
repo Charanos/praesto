@@ -1,10 +1,26 @@
-# Kenya Pharmacy Availability · Revamp tracker
+# Praesto · Revamp tracker
 
-**Current position:** Phases 0–5 implemented; Phase 6 local verification complete. Release and external data gates remain below. **Release:** local preview only. **Active branch:** `codex/pharmacy-revamp`.
+**Current position:** Overview, console, Catalogue, Sources and Data Quality have been rebuilt and reviewed locally. Shared selectors, content-sized product readers, pagination and graceful route scrolling are implemented. **Release:** GitHub CI and Vercel deployment preparation in progress. **Active branch:** `codex/pharmacy-revamp`.
 
 Updated 14 October 2026. Update this tracker after each completed milestone: record the outcome, check evidence and remaining gates together. A passed build is not a deployment or a clinical-content approval.
 
 ## Milestone board
+
+### Current screen overhaul
+
+| Surface | State | Outcome / next step |
+|---|---|---|
+| Overview · hero | Rebuilt locally | Compact ink summary; explicit product-listing scope; distinct stock evidence columns and restrained separators. |
+| Overview · attention | Rebuilt locally | Horizontal clinical lead with a small source-signal inset; two compact supporting tiles. |
+| Overview · watchlist | Rebuilt locally | Expandable evidence ledger; slim badges and pill controls; white recessed named reports; fading divider and constrained introduction. |
+| Overview · pharmacy comparison | Rebuilt locally | One aligned comparison surface combines source identity, stock mix, counts and rate; stock-share/volume ordering; compact listing-only sources. Heading moved right at client request. |
+| Overview · composition and price | Rebuilt locally | Category treemap with exact count ledger, compact breadth ring, stockout disclosure, horizontal price distribution, confidence ledger and calculation sensitivity. |
+| Praesto branding and console | Rebuilt locally | A/B JetBrains Mono logo sets; wider 264px rail, mint active state, transparent header, mobile logo/search row, 48px dark launcher and separate 44px floating navigation pills. Adaptive favicon follows system preference independently of the light dashboard. |
+| Catalogue | Verified locally | Dark sidebar extension, flowing results, pagination, source glyphs, Matrix/Charts and compact evidence/clinical/identity reader. Filters, CSV and clinical boundaries retained. |
+| Sources | Verified locally | Unified source ledger, custom sorting, expandable collection records, diverging product evidence and capture concentration. Listing and product grains remain explicit. |
+| Data Quality | Verified locally | Exact field linkage, confidence ledger, searchable classes, switchable review queues, excluded-source diagnostics and calculation sensitivity. |
+
+The older phase board below records foundational implementation, not acceptance of the current visual design. See [Overview overhaul](docs/revamp/OVERVIEW_OVERHAUL.md) for the current composition and evidence.
 
 | Milestone | State | Concrete outcome | Evidence / next gate |
 |---|---|---|---|
@@ -37,8 +53,11 @@ Updated 14 October 2026. Update this tracker after each completed milestone: rec
 - **Intentional typography:** Libertinus Serif titles, Nunito interface/body text and JetBrains Mono for data. Fonts are self-hosted with their license files.
 - **Expanded accents:** teal, cobalt, amber, coral, botanical and berry semantic families, with paired foreground/surface tokens.
 - **Reusable glyph craft:** the collapsed launcher's restrained geometry guides later section icons. Use the shared 24-unit original SVG set sparingly and consistently.
-- **Phone navigation:** always-dark 52px launcher at the bottom right, including when collapsed; four labeled actions expand upward. Preserve comfortable safe-area offsets and reachable content.
+- **Phone navigation:** always-dark 48px launcher at the bottom right, including when collapsed; four separate slim floating pills with 44px targets expand upward. Preserve comfortable safe-area offsets and reachable content.
 - **Honest clinical depth:** existing local source text can be explored in development; restricted/unlicensed monographs are not newly bundled into production.
+- **Ground-up section composition:** compact lead surfaces, evidence ledgers and varied bento structures replace repeated equal-card layouts. Main headings have no icons or visible sequence numbers.
+- **Sleek data controls:** slim white outlined evidence badges; restrained pill toggles with inset counts; painted phone controls remain smaller than their hit areas. Named reports use a white recessed inset.
+- **Reading rhythm:** generous section spacing, fading separators, constrained introductory text and distinct semantic glyphs. Heading alignment follows client section feedback; the pharmacy comparison is right aligned.
 
 ## Remaining gates
 
@@ -65,3 +84,6 @@ Updated 14 October 2026. Update this tracker after each completed milestone: rec
 | 14 Oct | Phases 4–5: indexing policy, source-file identity checks, bounded reads, worker preparation, precomputed snapshot analysis, chunked transfer and on-demand facets implemented. |
 | 14 Oct | Phase 6 local evidence complete: 23 tests, 96 contract checks, four-width workflows, 320px reflow/detail, zero automated accessibility violations, unchanged CSV and production retry/corruption/delayed-load recovery. Mobile Lighthouse: Overview 96, Catalogue 92, Sources 97, Quality 96. |
 | 14 Oct | Section revamp and verified worker loading committed as `eb7fa66`; local release evidence and external gates recorded for review. |
+
+| 14 Oct | Catalogue, Sources and Data Quality overhaul verified at desktop/phone/320px. 29 tests and 96 local contract checks pass. Dynamic favicon switches on system preference changes. Repository renamed to Charanos/praesto; dashboard CI introduced for the versioned snapshot. Deployment status will be recorded after live verification. |
+

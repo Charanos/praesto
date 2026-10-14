@@ -1,5 +1,6 @@
 import { loadStore } from './store.js';
 import { runFilter, summarise, sourceBreakdown, inStockCoverage, EMPTY } from './filters.js';
+import { buildOverviewModel } from './overview-model.js';
 self.onmessage = async () => {
   let last = -1;
   try {
@@ -16,6 +17,7 @@ self.onmessage = async () => {
       widelyAvailable:inStockCoverage(store,store.allRows),
       reviewCount:store.allRows.reduce((count,i)=>count+(store.D.review[store.P.review[i]]==='needs_review'?1:0),0),
     };
+    store.overviewModel=buildOverviewModel(store);
     self.postMessage({part:'base',value:{...store,P:{},keyIndex:new Map(),byIngredient:new Map()}});
     for(const [name,value] of Object.entries(store.P)) {
       if(Array.isArray(value) && value.length>4000) {

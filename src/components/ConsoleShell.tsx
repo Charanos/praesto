@@ -5,13 +5,13 @@ export const destinations = [
   {
     id: "overview",
     label: "Overview",
-    icon: "overview",
+    icon: "workspace-overview",
     context: "The captured picture",
   },
   {
     id: "catalogue",
     label: "Catalogue",
-    icon: "capsule",
+    icon: "catalogue-compare",
     context: "Find & compare",
   },
   {
@@ -23,7 +23,7 @@ export const destinations = [
   {
     id: "quality",
     label: "Data quality",
-    icon: "scan",
+    icon: "quality-document",
     context: "Evidence & limitations",
   },
 ] as const;
@@ -48,12 +48,16 @@ export function ConsoleSidebar({
   productCount,
   sourceCount,
   snapshot,
+  catalogueControlsOpen = false,
+  onToggleCatalogueControls,
 }: {
   view: string;
   onNavigate: (view: string) => void;
   productCount: number | null;
   sourceCount: number | null;
   snapshot: Snapshot;
+  catalogueControlsOpen?: boolean;
+  onToggleCatalogueControls?: () => void;
 }) {
   const mobile = useSmallScreen();
   const [open, setOpen] = useState(false);
@@ -107,16 +111,28 @@ export function ConsoleSidebar({
           setOpen(false);
       }}
     >
-      <div className="console-brand">
-        <span className="rail-mark" aria-hidden="true">
-          KP
-        </span>
-        <span className="console-brand-name">
-          Kenya Pharmacy<small>Availability workspace</small>
-        </span>
-      </div>
+      <button
+        className="console-brand"
+        onClick={() => navigate("overview")}
+        aria-label="Praesto, overview"
+      >
+        <img
+          className="console-brand-lockup"
+          src="/brand/praesto/praesto-b-horizontal-dark.svg"
+          alt="Praesto"
+          width={400}
+          height={128}
+        />
+        <img
+          className="console-brand-monogram"
+          src="/brand/praesto/praesto-b-monogram-dark.svg"
+          alt=""
+          width={120}
+          height={120}
+        />
+      </button>
       <div className="console-nav-heading">
-        <span>Explore</span>
+        <span>Workspace</span>
         <span className="console-country">KE</span>
       </div>
       <div
@@ -159,14 +175,14 @@ export function ConsoleSidebar({
             onClick={() => navigate(item.id)}
           >
             <span className="console-nav-symbol">
-              <Icon name={item.icon} size={18} className="console-nav-icon" />
+              <Icon name={item.icon} size={21} className="console-nav-icon" />
             </span>
             <span>{item.label}</span>
             {item.id === "catalogue" && (
               <span className="tail">{compactCount(productCount)}</span>
             )}
             {item.id === "sources" && (
-              <span className="tail">{sourceCount}</span>
+              <span className="tail">{sourceCount ?? "—"}</span>
             )}
           </button>
         ))}
@@ -180,39 +196,52 @@ export function ConsoleSidebar({
         aria-label={open ? "Close workspace menu" : "Open workspace menu"}
         onClick={() => setOpen(!open)}
       >
-        <Icon name={open ? "x" : "grid"} size={23} />
+        <Icon name={open ? "x" : "workspace-switch"} size={22} />
       </button>
+      {view === "catalogue" && onToggleCatalogueControls && (
+        <button
+          className="console-catalogue-controls"
+          aria-label="Toggle catalogue controls"
+          aria-expanded={catalogueControlsOpen}
+          aria-controls="catalogue-controls"
+          onClick={onToggleCatalogueControls}
+        >
+          <Icon name="filter" size={17} />
+          <span>Catalogue controls</span>
+          <Icon name={catalogueControlsOpen ? "left" : "right"} size={14} />
+        </button>
+      )}
       <div className="console-sidebar-foot">
-        <div className="console-snapshot-line">
-          <span className="eyebrow">Snapshot</span>
-          <span className="mono">{snapshot.id}</span>
+        <div className="console-snapshot-well">
+          <div className="console-snapshot-line">
+            <span className="eyebrow">Snapshot</span>
+            <span className="mono">{snapshot.id}</span>
+          </div>
+          <p>Captured listings. Confirm current stock with the pharmacy.</p>
+          <details>
+            <summary>
+              Snapshot details <Icon name="down" size={12} className="" />
+            </summary>
+            <dl>
+              <dt>Collection date</dt>
+              <dd>
+                {snapshot.date}
+                {snapshot.inferred && " · inferred"}
+              </dd>
+              <dt>Contract</dt>
+              <dd>{snapshot.contract}</dd>
+              <dt>Matching</dt>
+              <dd>{snapshot.match}</dd>
+            </dl>
+          </details>
         </div>
-        <p>
-          Collected listings.
-          <br />
-          Current stock needs confirmation.
-        </p>
-        <details>
-          <summary>
-            Snapshot details <Icon name="down" size={12} className="" />
-          </summary>
-          <dl>
-            <dt>Collection date</dt>
-            <dd>
-              {snapshot.date}
-              {snapshot.inferred && " · inferred"}
-            </dd>
-            <dt>Contract</dt>
-            <dd>{snapshot.contract}</dd>
-            <dt>Matching</dt>
-            <dd>{snapshot.match}</dd>
-          </dl>
-        </details>
         <button
           className="console-method-link"
+          aria-label="How to read the evidence"
           onClick={() => onNavigate("quality")}
         >
-          How to read the evidence <Icon name="right" size={13} className="" />
+          <Icon name="book" size={18} /> Reading guide{" "}
+          <Icon name="right" size={13} className="" />
         </button>
       </div>
     </nav>
@@ -223,6 +252,7 @@ export function ConsoleTopbar({
   view,
   query,
   onSearch,
+  onHome,
   onExport,
   exportReady = true,
   snapshot,
@@ -230,6 +260,7 @@ export function ConsoleTopbar({
   view: string;
   query: string;
   onSearch: (query: string) => void;
+  onHome: () => void;
   onExport: () => void;
   exportReady?: boolean;
   snapshot: Snapshot;
@@ -237,13 +268,24 @@ export function ConsoleTopbar({
   const active = destinations.find((item) => item.id === view);
   return (
     <header className="topbar console-topbar">
+      <button
+        className="console-mobile-brand"
+        onClick={onHome}
+        aria-label="Praesto, overview"
+      >
+        <img
+          src="/brand/praesto/praesto-b-monogram-light.svg"
+          width={32}
+          height={32}
+          alt="Praesto"
+        />
+      </button>
       <div className="console-context">
         <span>Workspace</span>
-        <Icon name="right" size={12} className="" />
-        <b>{active?.context || "Design system"}</b>
+        <b>{active?.label || "Design system"}</b>
       </div>
       <div className="field global-search" data-search>
-        <Icon name="search" size={16} className="" />
+        <Icon name="search" size={18} className="" />
         <input
           value={query}
           onChange={(event) => onSearch(event.target.value)}
@@ -276,7 +318,7 @@ export function ConsoleTopbar({
             {snapshot.loading
               ? "Preparing data files"
               : snapshot.inferred
-                ? "Collection date inferred"
+                ? "Date inferred"
                 : "Source collection date"}
           </small>
         </span>

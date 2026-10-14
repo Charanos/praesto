@@ -1,6 +1,8 @@
-# Kenya Pharmacy Availability — data pipeline
+# Praesto · Kenya Pharmacy Availability
 
-Turns the raw shop scrapes in `04_Working Data/` into a fact table, a matching
+Praesto is the availability workspace: a light reading canvas, a dark console, product-first Catalogue and source-backed Overview. See [design system](DESIGN.md), [project tracker](PROJECT_TRACKER.md), [Catalogue overhaul](docs/revamp/CATALOGUE_OVERHAUL.md) and [verification](docs/revamp/VERIFICATION.md). Preview the A/B brand lockups at `/brand/praesto.html`; the source kit and ZIP live in `static/brand/`.
+
+The data pipeline turns the raw shop scrapes in `04_Working Data/` into a fact table, a matching
 engine, a classification layer and Parquet read models.
 
 **If you are building against this, read [CONTRACT.md](CONTRACT.md).** That is
@@ -10,7 +12,7 @@ asserts it on every build.
 ```bash
 npm install
 npm run pipeline:build # raw JSON -> data/*.parquet + data/kpad.duckdb (local data workspace)
-npm run verify      # 75 assertions, non-zero exit on failure
+npm run verify      # 96 assertions, non-zero exit on failure
 npm run export:app  # project the views into the browser read model
 npm run dev         # run the interface at localhost:5173
 npm run build       # production Vite bundle from the committed static/app snapshot
@@ -181,3 +183,9 @@ assertions. All exercised in `verify.js`; details in
   carried as explicit rows so the denominator change is visible.
 - OneStop returned 25 rows against a real catalogue — quarantined as a failed
   scrape, not a small shop.
+
+## Dashboard CI and releases
+
+The canonical repository is [Charanos/praesto](https://github.com/Charanos/praesto). GitHub Actions uses Node 24 and npm ci, then npm run check:app: type checking, formatting, lint, 29 tests against the versioned snapshot, and production build. It also checks that the build did not alter static/app. npm run check adds the 96 local database assertions and therefore requires the intentionally unversioned analytical database. npm run ci remains the separate source-refresh pipeline; it must not be used to silently promote staged captures for an interface release.
+
+The Sources and Data Quality compositions and their limits are documented in docs/revamp/SOURCES_OVERHAUL.md and docs/revamp/QUALITY_OVERHAUL.md. Production reference fields require a licensed, source-qualified adapter; development-only local monographs are not shipped by this release.

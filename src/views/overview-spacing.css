@@ -1,0 +1,63 @@
+/* Breathing room belongs between groups; dense evidence remains readable within them. */
+.overview-brief .brief-section {
+  margin-top: var(--s-8);
+}
+.overview-brief .brief-section::after,
+.availability-hero::after {
+  margin-top: var(--s-7);
+}
+.overview-brief .brief-watchlist {
+  margin-top: var(--s-7);
+}
+@media (max-width: 620px) {
+  .scroll > .overview-brief.page,
+  .workspace-intro-overview {
+    padding-inline: var(--s-5);
+  }
+  .overview-brief .brief-section {
+    margin-top: var(--s-7);
+  }
+  .overview-brief .brief-section::after,
+  .availability-hero::after {
+    margin-top: var(--s-6);
+  }
+  .availability-states {
+    gap: var(--s-7);
+  }
+  .availability-states article {
+    display: flex;
+    flex-direction: column;
+    padding: var(--s-2) 0;
+  }
+  .availability-states header {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--s-3);
+  }
+  .availability-share {
+    display: block;
+    width: auto;
+    padding: 0;
+    margin-left: auto;
+  }
+  .availability-state-value {
+    margin-top: var(--s-4);
+    font-size: var(--text-metric-lg);
+  }
+  .availability-states p {
+    margin-top: var(--s-3);
+    font-size: var(--text-body-comfort);
+  }
+  .availability-states .brief-link {
+    margin-top: var(--s-3);
+    min-height: 48px;
+    font-size: var(--text-base);
+  }
+  .availability-states article + article::before {
+    top: -24px;
+  }
+  .availability-evidence-head {
+    margin-block: var(--s-6);
+    font-size: var(--text-body-comfort);
+  }
+}
