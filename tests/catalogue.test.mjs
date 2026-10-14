@@ -3,14 +3,15 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { performance } from 'node:perf_hooks';
 import { loadStore, loadListings, listingsFor, popcount } from '../src/lib/store.js';
-import { EMPTY, runFilter, encodeFilters, decodeFilters, facetCounts } from '../src/lib/filters.js';
+import { EMPTY, runFilter, encodeFilters, decodeFilters, facetCounts, inStockCoverage } from '../src/lib/filters.js';
 import { buildCsv } from '../src/lib/export.js';
 const payloads = Object.fromEntries(await Promise.all(['meta','products','listings'].map(async name => [name, JSON.parse(await readFile(new URL(`../static/app/${name}.json`, import.meta.url), 'utf8'))])));
 const calls = [];
+const bytes = Object.fromEntries(await Promise.all(['meta','products','listings'].map(async name=>[name,await readFile(new URL(`../static/app/${name}.json`,import.meta.url))])));
 globalThis.fetch = async url => {
   calls.push(url);
   const key = String(url).split('/').at(-1).replace('.json','');
-  return { ok: true, headers: new Headers(), json: async () => payloads[key] };
+  return new Response(bytes[key]);
 };
 const store = await loadStore();
 const expected = predicate => Array.from({length:store.P.n},(_,i)=>i).filter(predicate).sort((a,b)=>a-b);
@@ -33,6 +34,12 @@ test('ANY and ALL pharmacy masks remain distinct', () => {
   const mask=3;
   assert.deepEqual(actual({shopsAny:[0,1]}),expected(i=>(store.P.listedMask[i]&mask)!==0));
   assert.deepEqual(actual({shopsAll:[0,1]}),expected(i=>(store.P.listedMask[i]&mask)===mask));
+});
+test('broad in-stock coverage excludes raw availability from non-reporting sources',()=>{
+  const covered=inStockCoverage(store,Array.from({length:store.P.n},(_,i)=>i));
+  assert.deepEqual([...covered].sort((a,b)=>a-b),expected(i=>bits(store.P.inMask[i])>=5));
+  assert.equal(covered.length,11);assert.equal(covered.filter(i=>store.P.clinical[i]).length,3);
+  assert.equal(store.P.nIn.filter(n=>n>=5).length,126,'Legacy raw aggregate remains intact for CSV compatibility');
 });
 test('stock filters use judged evidence masks and compose with clinical and price bounds', () => {
   const reporting = store.shops.filter(s=>s.publishes_oos).map(s=>s.bit);
@@ -68,10 +75,10 @@ test('CSV retains columns, filtered membership, blank prices, state labels and q
 test('listing requests deduplicate, retain source evidence and recover after failure',async()=>{
   const original=globalThis.fetch;
   let n=0;
-  globalThis.fetch=async url=>{n++; if(n===1) throw new Error('temporary offline'); return original(url);};
+  globalThis.fetch=async url=>{n++; if(n<=2) throw new Error('temporary offline'); return original(url);};
   await assert.rejects(loadListings(store),/temporary offline/);
   const [a,b]=await Promise.all([loadListings(store),loadListings(store)]);
-  assert.equal(a,b);assert.equal(n,2);
+  assert.equal(a,b);assert.equal(n,3);
   const selected=store.P.inMask.findIndex(mask=>mask!==0);
   const detail=listingsFor(store,selected);
   assert.ok(detail.length>0);

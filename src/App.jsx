@@ -8,7 +8,7 @@
 
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { buildCsv } from './lib/export.js';
-import { loadStore } from './lib/store.js';
+import { loadStore } from './lib/store-loader.js';
 import { encodeFilters, decodeFilters } from './lib/filters.js';
 import { Icon, fmtDate } from './components/ui.jsx';
 import Overview from './views/Overview.jsx';
@@ -17,8 +17,10 @@ import Sources from './views/Sources.jsx';
 import Quality from './views/Quality.jsx';
 import './workspace.css';
 import './console.css';
+import './sections.css';
 import { ConsoleSidebar, ConsoleTopbar, destinations as NAV } from './components/ConsoleShell.tsx';
 import OfflineNotice from './components/OfflineNotice.tsx';
+import WorkspaceIntro from './components/WorkspaceIntro';
 const DesignSystem = import.meta.env.DEV ? lazy(() => import('./views/DesignSystem.tsx')) : null;
 const DevAudit = import.meta.env.DEV ? lazy(() => import('./components/DevAudit.tsx')) : null;
 
@@ -29,6 +31,7 @@ function readUrl() {
 
 export default function App() {
   const [store, setStore] = useState(null);
+  const [loadingMeta, setLoadingMeta] = useState(null);
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState({ stage: 'meta', progress: 0 });
 
@@ -37,14 +40,15 @@ export default function App() {
   const [filters, setFilters] = useState(initial.filters);
   useEffect(() => {
     let alive = true;
-    loadStore((s) => alive && setProgress(s))
+    const controller = new AbortController();
+    loadStore((s) => { if(alive){setProgress(s);if(s.meta)setLoadingMeta(s.meta);} },controller.signal)
       .then((s) => {
         if (!alive) return;
         setStore(s);
 
       })
       .catch((e) => alive && setError(e));
-    return () => { alive = false; };
+    return () => { alive = false; controller.abort(); };
   }, []);
 
   // Mirror view and filters into the URL without stacking history entries.
@@ -80,40 +84,41 @@ export default function App() {
   const navigate = useCallback((v) => setView(v), []);
 
   if (error) {
+    const inconsistent = /Read-model (size|identity) mismatch/.test(error.message);
     return (
       <div className="empty" style={{ height: '100vh' }}>
         <Icon name="alert" size={22} />
-        <div className="h2">The catalogue could not load</div>
-        <p className="sub">Check your connection, then try again.</p>
+        <div className="h2">{inconsistent ? 'This snapshot could not be verified' : 'The catalogue could not load'}</div>
+        <p className="sub">{inconsistent ? 'Reload to get a consistent set of catalogue data.' : 'Check your connection, then try again.'}</p>
         <button className="btn btn-primary" onClick={() => window.location.reload()}>Retry loading</button>
       </div>
     );
   }
 
-  if (!store) return <Loading progress={progress} />;
-
-  const { meta } = store;
-  const snapshotDate = fmtDate(meta.headline.snapshot_at, { day: '2-digit', month: 'short', year: 'numeric' });
-  const snapshot = { id: meta.run.snapshot_id, date: snapshotDate, inferred: meta.run.snapshot_at_inferred, contract: meta.contract_version, match: meta.run.match_algo_version };
+  const meta = store?.meta ?? loadingMeta;
+  const snapshotDate = meta ? fmtDate(meta.headline.snapshot_at, { day: '2-digit', month: 'short', year: 'numeric' }) : 'Loading snapshot…';
+  const snapshot = { id: meta?.run.snapshot_id ?? 'Loading…', date: snapshotDate, inferred: meta?.run.snapshot_at_inferred ?? false, contract: meta?.contract_version ?? '—', match: meta?.run.match_algo_version ?? '—', loading:!meta };
 
   return (
-    <div className="app">
+    <div className="app" data-ready={!!store}>
       <a className="skip-link" href="#workspace">Skip to workspace</a>
-      <ConsoleSidebar view={view} onNavigate={navigate} productCount={store.P.n} sourceCount={store.shops.length} snapshot={snapshot} />
+      <ConsoleSidebar view={view} onNavigate={navigate} productCount={meta?.headline.products ?? null} sourceCount={meta?.headline.pharmacies ?? null} snapshot={snapshot} />
 
       <main className="main" id="workspace" tabIndex={-1}>
         <OfflineNotice />
-        <ConsoleTopbar view={view} query={filters.q} onSearch={(query) => { setFilters({ ...filters, q: query }); setView('catalogue'); }} onExport={() => exportCsv(store, filters)} snapshot={snapshot} />
+        <ConsoleTopbar view={view} query={filters.q} onSearch={(query) => { setFilters({ ...filters, q: query }); setView('catalogue'); }} onExport={() => store && exportCsv(store, filters)} exportReady={!!store} snapshot={snapshot} />
 
         {view === 'catalogue' ? (
-          <Catalogue store={store} filters={filters} setFilters={setFilters} />
+          <div className="catalogue-workspace"><WorkspaceIntro view={view} />{store ? <Catalogue store={store} filters={filters} setFilters={setFilters} /> : <Loading progress={progress} />}</div>
         ) : (
           <div className="scroll">
-            {view === 'overview' && <Overview store={store} onNavigate={navigate} setFilters={setFilters} />}
-            {view === 'sources' && <Sources store={store} onNavigate={navigate} setFilters={setFilters} />}
-            {view === 'quality' && <Quality store={store} onNavigate={navigate} setFilters={setFilters} />}
+            <WorkspaceIntro view={view} />
+            {!store && <Loading progress={progress} />}
+            {store && view === 'overview' && <Overview store={store} onNavigate={navigate} setFilters={setFilters} />}
+            {store && view === 'sources' && <Sources store={store} onNavigate={navigate} setFilters={setFilters} />}
+            {store && view === 'quality' && <Quality store={store} onNavigate={navigate} setFilters={setFilters} />}
             {view === 'design' && DesignSystem && <Suspense fallback={<p>Loading component catalogue…</p>}><DesignSystem /></Suspense>}
-            <footer className="workspace-foot">Stock and prices reflect collected pharmacy listings. Confirm current availability and price with the pharmacy. <a href="/about.html" className="table-action">Data notes</a></footer>
+            {store && <footer className="workspace-foot">Stock and prices reflect collected pharmacy listings. Confirm current availability and price with the pharmacy. <a href="/about.html" className="table-action">Data notes</a></footer>}
           </div>
         )}
       </main>
@@ -128,8 +133,7 @@ function Loading({ progress }) {
   const pct = Math.round(progress.progress * 100);
   return (
     <div className="empty app-loading" role="status" aria-live="polite">
-      <div className="rail-mark" style={{ width: 34, height: 34, fontSize: 'var(--text-xs)' }}>KP</div>
-      <div className="h3">Kenya Pharmacy Availability</div>
+      <p>Preparing catalogue data…</p>
       <div role="progressbar" aria-label="Loading catalogue" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} style={{ width: 200, height: 2, background: 'var(--line)', borderRadius: 2, overflow: 'hidden' }}>
         <div style={{
           height: '100%', width: `${Math.max(6, pct)}%`, background: 'var(--accent)',

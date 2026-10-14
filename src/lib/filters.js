@@ -15,6 +15,7 @@
  */
 
 
+import { popcount } from './store.js';
 export const EMPTY = {
   q: '',
   types: [],           // dictionary indices
@@ -218,6 +219,10 @@ export function summarise(store, rows) {
 }
 
 /** Per-source availability over a result set, for the bar chart. */
+export function inStockCoverage(store, rows, minimum = 5) {
+  const count = popcount;
+  return rows.filter(i=>count(store.P.inMask[i])>=minimum).sort((a,b)=>count(store.P.inMask[b])-count(store.P.inMask[a]) || store.P.nListed[b]-store.P.nListed[a]);
+}
 export function sourceBreakdown(store, rows) {
   const { P, shops } = store;
   const out = shops.map((s) => ({ shop: s, listed: 0, inStock: 0, oos: 0 }));

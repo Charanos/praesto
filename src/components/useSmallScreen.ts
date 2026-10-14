@@ -1,10 +1,14 @@
-import { useSyncExternalStore } from 'react';
-const query = '(max-width: 760px)';
+import { useSyncExternalStore } from "react";
+const query = "(max-width: 760px)";
 const subscribe = (notify: () => void) => {
   const media = window.matchMedia(query);
-  media.addEventListener('change', notify);
-  return () => media.removeEventListener('change', notify);
+  media.addEventListener("change", notify);
+  return () => media.removeEventListener("change", notify);
 };
 export function useSmallScreen() {
-  return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches, () => false);
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(query).matches,
+    () => false,
+  );
 }

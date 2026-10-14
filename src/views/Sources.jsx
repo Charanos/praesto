@@ -1,174 +1,34 @@
-/**
- * Sources — one row per pharmacy, plus feed provenance.
- *
- * A quarantined feed is never rendered as a rate. "100% available" from a shop
- * that has never emitted an out-of-stock value is not a fact about its shelves,
- * and publishing it as one has already been wrong once: Pharmily read 0% in
- * June and 75.9% in September.
- */
-
-import { Fragment,  useMemo, useState } from 'react';
+/** Sources: an actionable directory, with stock evidence separate from capture size. */
+import { useMemo } from 'react';
 import { runFilter, sourceBreakdown, EMPTY } from '../lib/filters.js';
-import { Section, Icon, Tag, n0, n1, compact } from '../components/ui.jsx';
+import { Section, Icon, n0, n1 } from '../components/ui.jsx';
 import { useTip, SourceBars } from '../components/charts.jsx';
+import SourceDirectory from '../components/SourceDirectory';
 
 export default function Sources({ store, onNavigate, setFilters }) {
   const { meta } = store;
   const tip = useTip();
-  const [open, setOpen] = useState(null);
-
-  const all = useMemo(() => runFilter(store, EMPTY, { key: 'oos', dir: 'desc' }).rows, [store]);
-  const breakdown = useMemo(() => sourceBreakdown(store, all), [store, all]);
-  const byId = Object.fromEntries(breakdown.map((b) => [b.shop.pharmacy_id, b]));
-
-  const present = meta.pharmacies.filter((p) => p.present_in_snapshot);
-  const absent = meta.pharmacies.filter((p) => !p.present_in_snapshot);
-  const reporting = present.filter((p) => p.publishes_oos);
-
-  // Concentration matters because a panel rate is a weighted average: when
-  // three catalogues carry most of the listings, the network number is largely
-  // theirs and a single feed's behaviour moves it.
-  const concentration = useMemo(() => {
-    const sorted = [...present].sort((a, b) => b.listings - a.listings);
-    const total = sorted.reduce((a, p) => a + p.listings, 0) || 1;
-    const top3 = (100 * sorted.slice(0, 3).reduce((a, p) => a + p.listings, 0)) / total;
-    return { top3, leader: sorted[0]?.name ?? '—' };
-  }, [present]);
-
-  return (
-    <div className="page sources-page">
-      {tip.node}
-      <header className="page-head sources-head">
-        <div className="eyebrow">Network</div>
-        <h1 className="h1">Sources</h1>
-        <p className="sub sources-lede">
-          {present.length} pharmacy catalogues captured, {reporting.length} of which publish an
-          out-of-stock state. {absent.length} more are in the panel but absent from this snapshot.
-        </p>
-      </header>
-
-      <div className="stack sources-stack">
-      <section className="sources-status-strip" aria-label="Source reporting summary">
-        <div><span>Captured</span><b className="num">{present.length}</b><small>catalogues</small></div>
-        <div><span>Reporting</span><b className="num">{reporting.length}</b><small>stock states</small></div>
-        <div><span>Listings only</span><b className="num">{present.length - reporting.length}</b><small>excluded from stock rate</small></div>
-        <div><span>Absent</span><b className="num">{absent.length}</b><small>this snapshot</small></div>
-      </section>
-
-      <div className="sources-network-grid">
-        <Section className="sources-availability" eyebrow="Catalogue size and availability" title="Observed availability"
-          caption={<>
-            Hatched sources publish no stock signal; their listing count is real but no rate can be
-            derived. The largest three catalogues hold <b>{n1(concentration.top3)}%</b> of all
-            listings, so the panel-wide rate is substantially {concentration.leader}&rsquo;s rate.
-          </>}>
-          <SourceBars rows={breakdown} tip={tip}
-            onPick={(bit) => { setFilters({ ...EMPTY, shopsAny: [bit] }); onNavigate('catalogue'); }} />
-        </Section>
-
-        <Section className="sources-roster" eyebrow="Signal quality" title="What each source reports">
-          <div className="sources-roster-list">
-            {present.map((p) => (
-              <div key={p.pharmacy_id} className="sources-roster-row">
-                <span className="trunc">{p.name}</span>
-                {p.quarantined
-                  ? <Tag tone="warn">{p.health_flags === 'implausible_row_count' ? 'scrape failed' : 'no stock signal'}</Tag>
-                  : <Tag tone="in">reports stock</Tag>}
-                <span className="num tiny dim">
-                  {compact(p.listings)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Section>
-      </div>
-
-      <Section className="sources-ledger" eyebrow="Detail" title="Pharmacy coverage & collection details" flush>
-        <table className="tbl">
-          <thead>
-            <tr>
-              <th>Source</th>
-              <th>Platform</th>
-              <th className="r">Listings</th>
-              <th className="r">In stock</th>
-              <th className="r">Out</th>
-              <th className="r">Observed</th>
-              <th>Signal</th>
-              <th style={{ width: 30 }}><span className="sr">Details</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            {present.map((p) => {
-              const b = byId[p.pharmacy_id];
-              const expanded = open === p.pharmacy_id;
-              return (
-                <Fragment key={p.pharmacy_id}>
-                  <tr
-                    data-active={expanded}>
-                    <td><button className="table-action" aria-expanded={expanded} onClick={() => setOpen(expanded ? null : p.pharmacy_id)}>{p.name}</button></td>
-                    <td className="dim tiny">{p.platform}</td>
-                    <td className="r num">{n0(p.listings)}</td>
-                    <td className="r num">{p.publishes_oos ? n0(p.in_stock) : '—'}</td>
-                    <td className="r num" style={{ color: p.out_of_stock ? 'var(--out)' : undefined }}>
-                      {p.publishes_oos ? n0(p.out_of_stock) : '—'}
-                    </td>
-                    <td className="r num">
-                      {p.publishes_oos && b?.rate != null ? `${n1(b.rate)}%` : <span className="faint">—</span>}
-                    </td>
-                    <td>
-                      {p.quarantined ? <Tag tone="plain">listings only</Tag> : <Tag tone="in">reporting</Tag>}
-                    </td>
-                    <td className="c dim"><Icon name={expanded ? 'up' : 'down'} size={12} /></td>
-                  </tr>
-                  {expanded && (
-                    <tr key={`${p.pharmacy_id}-d`} className="sources-detail-row">
-                      <td colSpan={8}>
-                        <dl className="kv sources-detail-kv">
-                          <dt>Scrape method</dt><dd>{p.scrape_method}</dd>
-                          <dt>Listing identity</dt><dd className="mono micro">{p.listing_key_strategy}</dd>
-                          <dt>Distinct stock values</dt><dd className="num">{p.distinct_status_values}</dd>
-                          {p.rows_skipped > 0 && (<><dt>Rows skipped</dt><dd className="num">{n0(p.rows_skipped)}</dd></>)}
-                          {p.urls_repaired > 0 && (
-                            <><dt>URLs repaired</dt>
-                              <dd className="num">{n0(p.urls_repaired)} <span className="dim tiny">malformed at source</span></dd></>
-                          )}
-                          {p.health_detail && (
-                            <><dt>Health</dt><dd style={{ color: 'var(--warn)' }}>{p.health_detail}</dd></>
-                          )}
-                        </dl>
-                        <button className="btn btn-sm sources-detail-action"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFilters({ ...EMPTY, shopsAny: [b.shop.bit] });
-                            onNavigate('catalogue');
-                          }}>
-                          View {compact(p.listings)} products <Icon name="right" size={11} />
-                        </button>
-                      </td>
-                    </tr>
-                  )}
-                </Fragment>
-              );
-            })}
-          </tbody>
-        </table>
-      </Section>
-
-      {absent.length > 0 && (
-        <Section className="sources-absent" eyebrow="Panel members" title="Absent from this snapshot"
-          caption="Carried explicitly so the denominator change stays visible rather than silently shrinking the network.">
-          <div className="sources-absent-list">
-            {absent.map((p) => (
-              <div key={p.pharmacy_id} className="sources-absent-row">
-              <Icon name="alert" size={13} className="dim" />
-                <span>{p.name}</span>
-                <span className="dim">{p.absent_reason}</span>
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
-      </div>
+  const all = useMemo(() => store.allRows ?? runFilter(store, EMPTY, { key: 'oos', dir: 'desc' }).rows, [store]);
+  const breakdown = useMemo(() => store.allSources ?? sourceBreakdown(store, all), [store, all]);
+  const present = store.shops;
+  const absent = store.absent;
+  const reporting = present.filter(source => source.publishes_oos);
+  const sorted = [...present].sort((a,b)=>b.listings-a.listings);
+  const top3 = 100 * sorted.slice(0,3).reduce((sum,source)=>sum+source.listings,0) / Math.max(1,meta.headline.listings);
+  const browse = source => { setFilters({...EMPTY,shopsAny:[source.bit]});onNavigate('catalogue'); };
+  return <div className="page sources-page section-pass">
+    {tip.node}
+    <section className="sources-status-strip" aria-label="Source reporting summary">
+      <div><span>Captured</span><b className="num">{present.length}</b><small>pharmacy catalogues</small></div>
+      <div><span>Reporting stock</span><b className="num">{reporting.length}</b><small>used in the stock rate</small></div>
+      <div><span>Listings only</span><b className="num">{present.length-reporting.length}</b><small>stock stays unknown</small></div>
+      <div><span>Absent</span><b className="num">{absent.length}</b><small>not captured this time</small></div>
+    </section>
+    <SourceDirectory sources={present} onBrowse={browse} />
+    <div className="source-analysis-layout">
+      <Section className="sources-availability" eyebrow="Resolved product comparison" title="Availability by source" caption="Bars count resolved products: solid for in-stock reports, full length for products listed. A product can have several captured listings. Hatched sources have no usable stock signal."><SourceBars rows={breakdown} tip={tip} onPick={bit=>browse(present.find(source=>source.bit===bit))} /></Section>
+      <aside className="source-reading-notes" aria-label="How to compare sources"><span className="section-glyph" data-tone="cobalt"><Icon name="layers" size={21} /></span><h2>Coverage shapes the picture.</h2><p>The three largest catalogues account for <b className="mono">{n1(top3)}%</b> of all captured listings. Larger catalogues carry more weight in the combined availability rate.</p><dl><dt>Total captured listings</dt><dd className="mono">{n0(meta.headline.listings)}</dd><dt>Listings with no stock signal</dt><dd className="mono">{n0(meta.headline.not_published)}</dd></dl><p>These listings remain searchable. They are excluded from stock calculations rather than treated as available.</p><button className="table-action" onClick={()=>onNavigate('quality')}>Understand the data limits <Icon name="right" size={14} /></button></aside>
     </div>
-  );
+    {absent.length>0 && <Section className="sources-absent" eyebrow="Coverage gaps" title="Absent from this snapshot" caption="These pharmacies remain visible in the panel so missing captures do not silently change its scope."><div className="sources-absent-list">{absent.map(source=><div key={source.pharmacy_id} className="sources-absent-row"><Icon name="alert" size={16} className="dim" /><span>{source.name}</span><span className="dim">{source.absent_reason}</span></div>)}</div></Section>}
+  </div>;
 }

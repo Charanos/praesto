@@ -14,6 +14,7 @@ import { useMemo } from 'react';
 import { runFilter, summarise, EMPTY } from '../lib/filters.js';
 import { Section, Kpi, Icon, Tag, n0, n1, compact } from '../components/ui.jsx';
 import { useTip, LinkageBars, ConfidenceArc } from '../components/charts.jsx';
+import ReviewPaths from '../components/ReviewPaths';
 
 const QUEUE_ROWS = 12;
 
@@ -23,8 +24,8 @@ export default function Quality({ store, onNavigate, setFilters }) {
   const h = meta.headline;
   const tip = useTip();
 
-  const all = useMemo(() => runFilter(store, EMPTY, { key: 'listed', dir: 'desc' }).rows, [store]);
-  const stats = useMemo(() => summarise(store, all), [store, all]);
+  const all = useMemo(() => store.rowsByListed ?? runFilter(store, EMPTY, { key: 'listed', dir: 'desc' }).rows, [store]);
+  const stats = useMemo(() => store.allStats ?? summarise(store, all), [store, all]);
 
   const backlog = useMemo(
     () => all.filter((i) => D.gap[P.gap[i]] === 'di_miss'),
@@ -68,40 +69,36 @@ export default function Quality({ store, onNavigate, setFilters }) {
   ];
 
   return (
-    <div className="page quality-page">
+    <div className="page quality-page section-pass">
       {tip.node}
 
-      <header className="page-head quality-head">
-        <div className="eyebrow">Trust</div>
-        <h1 className="h1">Data quality</h1>
-        <p className="sub quality-lede">
-          Understand what the data can support before acting on it. Product matches and reference
-          coverage have limits; collection dates are inferred.
-        </p>
-      </header>
-
-      <section className="trust-guide" aria-label="How to interpret the evidence">
+      <ReviewPaths items={[
+        {label:'Product matches to review',count:review.length,description:'Doubtful matches and contested classifications are excluded from the shortage signal.',action:'Review product matches',icon:'scan',tone:'amber',onOpen:()=>jump({review:'needs_review'})},
+        {label:'Products awaiting reference',count:backlog.length,description:'No local reference match or usable source category. These products need more evidence.',action:'Explore reference gaps',icon:'book',tone:'cobalt',onOpen:()=>jump({gaps:[D.gap.indexOf('di_miss')].filter(index=>index>=0)})},
+        {label:'Sources without usable stock',count:quarantined.length,description:'Listings remain searchable, but do not contribute to the headline availability rate.',action:'Inspect pharmacy sources',icon:'pharmacy',tone:'berry',onOpen:()=>onNavigate('sources')},
+      ]} />
+      <details className="evidence-reading-guide"><summary>How to interpret stock, matching and reference information <Icon name="info" size={14} /></summary><section className="trust-guide" aria-label="How to interpret the evidence">
         <div><span className="eyebrow">Stock</span><h2>A listing is not a guarantee.</h2><p>Only reporting sources contribute to the availability rate. Confirm current stock with the pharmacy.</p></div>
         <div><span className="eyebrow">Matching</span><h2>Check strength, form and pack.</h2><p>Products are grouped from source listings. Match confidence describes that grouping, not clinical suitability.</p></div>
         <div><span className="eyebrow">Reference</span><h2>Missing information stays unknown.</h2><p>The local reference is incomplete. A linked ingredient does not establish comprehensive or current clinical guidance.</p></div>
-      </section>
+      </section></details>
       <div className="stack quality-stack">
         {/* ------------------------------------------------- headline --- */}
         <section className="section quality-pulse">
           <div className="kpis">
             <Kpi label="Catalogue matched" value={n1(100 * cov.drugindex_match_rate)} unit="%"
               note={<>{n0(cov.products_with_drugindex_match)} of {n0(cov.products_total)} products reach the register</>} />
-            <Kpi label="Blocked on reference" value={compact(cov.products_awaiting_drugindex)}
+            <Kpi label="Awaiting reference" value={compact(cov.products_awaiting_drugindex)}
               tone="var(--warn)"
-              note={<>{n1(100 * cov.catalogue_blocked_on_drugindex)}% — should fall as scraping continues</>} />
-            <Kpi label="Genuinely ambiguous" value={compact(cov.products_unclassified - cov.products_awaiting_drugindex)}
-              note={<>more reference data will not resolve these</>} />
-            <Kpi label="Carrying a class" value={compact(classCoverage.classed)}
+              note={<>{n1(100 * cov.catalogue_blocked_on_drugindex)}% of catalogue products</>} />
+            <Kpi label="Other unclassified" value={compact(cov.products_unclassified - cov.products_awaiting_drugindex)}
+              note={<>need classification evidence or review</>} />
+            <Kpi label="Therapeutic class linked" value={compact(classCoverage.classed)}
               note={<>across {classCoverage.rows.length} therapeutic categories</>} />
             <Kpi label="In review" value={compact(review.length)}
               note={<>doubtful match or contested class</>} />
             <Kpi label="Feeds excluded" value={quarantined.length}
-              note={<>of {h.pharmacies} — no stock signal published</>} />
+              note={<>of {h.pharmacies} — no usable stock signal</>} />
           </div>
 
           <div className="notice">
@@ -138,11 +135,7 @@ export default function Quality({ store, onNavigate, setFilters }) {
             fill
           >
             <ConfidenceArc counts={stats.byMatch} labels={D.matchBand} tip={tip} />
-            <div className="tiny dim quality-confidence-note">
-              The choice of matching key moves the headline shortage count on its own. Under exact
-              name equality it is 1; under this key 2, and 0 once filtered to medicines and devices.
-              The key is versioned and every figure derived from it is labelled.
-            </div>
+            <div className="tiny dim quality-confidence-note">Confidence describes the grouping of pharmacy listings, not clinical suitability. Low-confidence matches and products awaiting review are excluded from the shortage signal. Matching version: <span className="mono">{meta.run.match_algo_version}</span>.</div>
           </Section>
         </div>
 
@@ -219,7 +212,7 @@ export default function Quality({ store, onNavigate, setFilters }) {
                 Open all <Icon name="right" size={11} />
               </button>
             }
-            caption="Doubtful matches and contested classifications, worst first. These are excluded from the shortage signal."
+            caption="Doubtful matches and contested classifications, ordered by pharmacy listing coverage. These are excluded from the shortage signal."
             flush
             fill
           >

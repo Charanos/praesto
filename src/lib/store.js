@@ -12,31 +12,7 @@
  * debouncing or a worker.
  */
 
-const BASE = 'app';
-
-async function getJson(name, onProgress) {
-  const res = await fetch(`${BASE}/${name}.json`);
-  if (!res.ok) throw new Error(`${name}.json: ${res.status} ${res.statusText}`);
-  // Stream so the loader can show real progress on the larger payloads rather
-  // than a spinner that sits at zero for two seconds.
-  const total = Number(res.headers.get('content-length')) || 0;
-  if (!onProgress || !res.body || !total) return res.json();
-
-  const reader = res.body.getReader();
-  const chunks = [];
-  let received = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    received += value.length;
-    onProgress(Math.min(1, received / total));
-  }
-  const buf = new Uint8Array(received);
-  let at = 0;
-  for (const c of chunks) { buf.set(c, at); at += c.length; }
-  return JSON.parse(new TextDecoder().decode(buf));
-}
+import { fetchReadModel as getJson } from './read-model.ts';
 
 const i32 = (a) => Int32Array.from(a, (v) => (v == null ? -1 : v));
 const u8 = (a) => Uint8Array.from(a, (v) => (v == null ? 0 : v));
@@ -54,7 +30,7 @@ export async function loadStore(onStage) {
   onStage?.({ stage: 'meta', progress: 0 });
   const meta = await getJson('meta');
 
-  onStage?.({ stage: 'products', progress: 0 });
+  onStage?.({ stage: 'products', progress: 0, meta });
   const raw = await getJson('products', (p) => onStage?.({ stage: 'products', progress: p }));
 
   const n = raw.key.length;

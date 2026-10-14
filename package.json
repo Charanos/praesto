@@ -5,20 +5,24 @@
   "type": "module",
   "description": "Kenya Pharmacy Availability Dashboard - data pipeline (transform + matching engine)",
   "scripts": {
+    "prebuild": "node dev/stamp-read-model.mjs",
     "build": "vite build",
     "pipeline:build": "node pipeline/build.js",
     "verify": "node pipeline/verify.js",
     "reclassify": "node pipeline/reclassify.js",
-    "refresh": "npm run pipeline:build && node pipeline/verify.js && node pipeline/export-app.js && vite build",
-    "ci": "node pipeline/build.js --strict && node pipeline/verify.js && node pipeline/export-app.js && vite build",
+    "refresh": "npm run pipeline:build && node pipeline/verify.js && node pipeline/export-app.js && npm run build",
+    "ci": "node pipeline/build.js --strict && node pipeline/verify.js && node pipeline/export-app.js && npm run build",
+    "predev": "node dev/stamp-read-model.mjs",
     "dev": "vite",
     "preview": "vite preview",
-    "build:app": "vite build",
+    "build:app": "npm run build",
     "export:app": "node pipeline/export-app.js",
     "lint": "eslint src dev",
     "typecheck": "tsc --noEmit",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" dev/stamp-read-model.mjs",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" dev/stamp-read-model.mjs",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "check": "npm run typecheck && npm run lint && npm test && npm run verify && npm run build"
+    "check": "npm run typecheck && npm run format:check && npm run lint && npm test && npm run verify && npm run build"
   },
   "dependencies": {
     "@duckdb/node-api": "^1.5.5-r.5",
@@ -34,6 +38,7 @@
     "eslint": "^9.39.5",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "prettier": "3.9.10",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.2",
     "vite": "^8.3.0"

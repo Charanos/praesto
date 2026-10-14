@@ -10,7 +10,8 @@
  */
 
 import { useMemo, useState } from 'react';
-import { runFilter, summarise, sourceBreakdown, EMPTY } from '../lib/filters.js';
+import { runFilter, summarise, sourceBreakdown, inStockCoverage, EMPTY } from '../lib/filters.js';
+import { popcount } from '../lib/store.js';
 import { Section, Kpi, Icon, Strip, n0, n1, compact, fmtDate } from '../components/ui.jsx';
 import {
   useTip, SourceBars, TypeMix, PriceCurve, CoveragePlot, BandSteps, ConfidenceArc,
@@ -78,11 +79,11 @@ export default function Overview({ store, onNavigate, setFilters }) {
   const cov = meta.coverage;
   const tip = useTip();
 
-  const all = useMemo(() => runFilter(store, EMPTY, { key: 'oos', dir: 'desc' }).rows, [store]);
-  const stats = useMemo(() => summarise(store, all), [store, all]);
-  const sources = useMemo(() => sourceBreakdown(store, all), [store, all]);
+  const all = useMemo(() => store.allRows ?? runFilter(store, EMPTY, { key: 'oos', dir: 'desc' }).rows, [store]);
+  const stats = useMemo(() => store.allStats ?? summarise(store, all), [store, all]);
+  const sources = useMemo(() => store.allSources ?? sourceBreakdown(store, all), [store, all]);
 
-  const reportable = useMemo(() => all.filter((i) => (
+  const reportable = useMemo(() => store.overview?.reportable ?? all.filter((i) => (
     P.clinical[i] === 1
     && P.nOos[i] >= 2
     && D.matchBand[P.matchBand[i]] !== 'low'
@@ -96,13 +97,14 @@ export default function Overview({ store, onNavigate, setFilters }) {
 
   const scen = useMemo(() => scenarios(meta.pharmacies), [meta.pharmacies]);
   const [basis, setBasis] = useState('reporting');
+  const [analysisOpen,setAnalysisOpen] = useState(false);
   const active = scen.find((s) => s.key === basis) ?? scen[0];
 
   // James's "widely available" KPI: the products with enough independent
   // in-stock coverage to route a patient to, as distinct from the shortage
   // signal. Clinical first, because a routing pool of face creams is no use.
   const widelyAvailable = useMemo(
-    () => all.filter((i) => P.nIn[i] >= 5).sort((a, b) => P.nIn[b] - P.nIn[a]),
+    () => store.overview?.widelyAvailable ?? inStockCoverage(store,all),
     [all, P],
   );
   const widelyClinical = useMemo(
@@ -110,40 +112,15 @@ export default function Overview({ store, onNavigate, setFilters }) {
     [widelyAvailable, P],
   );
   const reviewCount = useMemo(
-    () => all.reduce((a, i) => a + (D.review[P.review[i]] === 'needs_review' ? 1 : 0), 0),
+    () => store.overview?.reviewCount ?? all.reduce((a, i) => a + (D.review[P.review[i]] === 'needs_review' ? 1 : 0), 0),
     [all, D, P],
   );
 
   const jump = (patch) => { setFilters({ ...EMPTY, ...patch }); onNavigate('catalogue'); };
 
   return (
-    <div className="page overview-page">
+    <div className="page overview-page section-pass">
       {tip.node}
-
-      <header className="page-head overview-head">
-        <div className="overview-title-block">
-          <div>
-            <div className="eyebrow">Latest snapshot · {snapshotDate}{meta.run.snapshot_at_inferred && ' · date inferred'}</div>
-            <h1 className="h1">Pharmacy availability, in context.</h1>
-          </div>
-          <p className="overview-lede">
-            Find products across pharmacy catalogues. Compare reported stock and listed prices,
-            with the source and limitations beside every finding.
-          </p>
-        </div>
-        <div className="section-actions overview-head-actions">
-            <button className="btn btn-sm" onClick={() => onNavigate('sources')}>Sources</button>
-            <button className="btn btn-sm" onClick={() => onNavigate('quality')}>Data quality</button>
-        </div>
-      </header>
-
-      <section className="task-entry" aria-label="Start an investigation">
-        <button className="task-primary" onClick={() => { onNavigate('catalogue'); requestAnimationFrame(() => document.querySelector('[data-search] input')?.focus()); }}>
-          <span className="task-index">01</span><span><b>Find &amp; compare a product</b><small>Search by product name or active ingredient</small></span><Icon name="right" size={20} />
-        </button>
-        <button onClick={() => jump({ clinicalOnly: true, oosMin: 2 })}><span className="task-index">02</span><span><b>Investigate stockout reports</b><small>Medicines and devices reported out across sources</small></span><Icon name="right" size={20} /></button>
-        <button onClick={() => onNavigate('sources')}><span className="task-index">03</span><span><b>Understand source coverage</b><small>See which pharmacies report usable stock evidence</small></span><Icon name="right" size={20} /></button>
-      </section>
 
       <div className="stack">
         {/* ------------------------------------------------- headline --- */}
@@ -151,7 +128,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
           <header className="section-head overview-pulse-head">
             <div className="titles">
               <div className="eyebrow">Snapshot at a glance</div>
-              <h2 className="section-title">What the captured listings report</h2>
+              <h2 className="section-title">Reported availability</h2>
             </div>
             <div className="seg overview-sensitivity" role="group" aria-label="Availability basis">
               {scen.map((s) => (
@@ -245,7 +222,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
                 <span className="num pulse-number">{h.pharmacies_publishing_oos}<span className="faint">/{h.pharmacies}</span></span></div>
               <div><span className="pulse-label">Median price</span>
                 <span className="num pulse-number">{n0(h.median_price_kes)}<span className="faint"> KES</span></span></div>
-              <div><span className="pulse-label">Widely available</span><span className="num pulse-number">{n0(widelyAvailable.length)}</span></div>
+              <div><span className="pulse-label">In stock at 5+ sources</span><span className="num pulse-number">{n0(widelyAvailable.length)}</span></div>
             </div>
 
             {/* -- what needs attention ----------------------------------- */}
@@ -269,7 +246,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
             </div>
           </div>
 
-          <div className="provenance overview-provenance">
+          <details className="snapshot-provenance"><summary>Snapshot provenance <Icon name="info" size={13} /></summary><div className="provenance overview-provenance">
             <Icon name="info" size={11} />
             <span>Snapshot <b style={{ color: 'var(--ink-2)' }}>{meta.run.snapshot_id}</b></span>
             <span className="sep">·</span>
@@ -282,13 +259,13 @@ export default function Overview({ store, onNavigate, setFilters }) {
             <span>register {meta.run.drugindex_fingerprint?.slice(0, 8)}</span>
             <span className="sep">·</span>
             <span>contract {meta.contract_version}</span>
-          </div>
+          </div></details>
 
           {(quarantined.length > 0 || absent.length > 0) && (
             <div className="notice" style={{ marginTop: 12 }}>
               <Icon name="alert" size={13} />
               <div>
-                <b>{quarantined.length} feeds publish no out-of-stock signal</b> and are excluded
+              <b>{quarantined.length} feeds have no usable stock signal</b> and are excluded
                 from network availability. <b>{absent.length} pharmacies are absent</b> from this
                 snapshot — {absent.map((a) => a.name).join(', ')}. Counting non-reporting feeds as
                 available would read <span className="num pulse-number">{n1(h.in_stock_rate_raw)}%</span> instead.
@@ -299,6 +276,12 @@ export default function Overview({ store, onNavigate, setFilters }) {
 
         <hr className="rule" />
 
+        <section className="task-entry" aria-label="Start an investigation">
+          <button className="task-primary" onClick={() => { onNavigate('catalogue'); requestAnimationFrame(() => document.querySelector('[data-search] input')?.focus()); }}><span className="section-glyph"><Icon name="capsule" size={20} /></span><span><b>Find &amp; compare</b><small>Product names and active ingredients</small></span><Icon name="right" size={16} /></button>
+          <button onClick={() => jump({ clinicalOnly: true, oosMin: 2 })}><span className="section-glyph" data-tone="amber"><Icon name="pulse" size={20} /></span><span><b>Investigate stockouts</b><small>Medicines and devices across sources</small></span><Icon name="right" size={16} /></button>
+          <button onClick={() => onNavigate('sources')}><span className="section-glyph" data-tone="cobalt"><Icon name="pharmacy" size={20} /></span><span><b>Explore pharmacies</b><small>Catalogues and reporting coverage</small></span><Icon name="right" size={16} /></button>
+        </section>
+
         {/* -------------------------------------------------- network --- */}
         <div className="overview-network-grid">
           <Section
@@ -308,7 +291,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
             actions={<button className="btn btn-sm btn-ghost" onClick={() => onNavigate('sources')}>
               All sources <Icon name="right" size={11} />
             </button>}
-            caption="Solid bar is in stock, lighter bar the full catalogue. Hatched sources publish no stock signal, so no rate is derived."
+            caption="Bars count resolved products: solid for in-stock reports, full length for products listed. Hatched sources have no usable stock signal."
             fill
           >
             <SourceBars rows={sources} tip={tip} onPick={(bit) => jump({ shopsAny: [bit] })} />
@@ -321,7 +304,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
               title="Classification mix"
               caption={<>
                 <b>{n1(100 * (1 - cov.products_unclassified / h.products))}%</b> classified.
-                The reference scrape is unfinished, so this shifts as it completes.
+                Classification depends on the incomplete local reference and source categories.
               </>}
             >
               <TypeMix counts={stats.byType} labels={D.type} tip={tip}
@@ -408,7 +391,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
           }
           caption={<>
             Medicines and devices with broad reported in-stock coverage in this snapshot.
-            Confirm current stock, strength, form and price with the pharmacy.
+            Confirm current stock, strength, form and price with the pharmacy. The catalogue action explores products listed by five or more sources.
             {widelyClinical.length === 0 && <> <b>Nothing clinical reaches five sources in this snapshot.</b></>}
           </>}
           flush
@@ -439,7 +422,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
                       onLeave={tip.hide} />
                   </td>
                   <td className="r num" style={{ color: 'var(--in)' }}>
-                    {P.nIn[i]}<span className="faint">/{P.nListed[i]}</span>
+                    {popcount(P.inMask[i])}<span className="faint">/{P.nEligible[i]}</span>
                   </td>
                   <td className="r num">{Number.isFinite(P.priceMed[i]) ? n0(P.priceMed[i]) : '—'}</td>
                 </tr>
@@ -451,7 +434,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
         <hr className="rule" />
 
         {/* ------------------------------------------------- analysis --- */}
-        <div className="overview-analysis-grid">
+        <details className="overview-analysis-disclosure" onToggle={event=>setAnalysisOpen(event.currentTarget.open)}><summary><span><span className="eyebrow">Supporting analysis</span><span>Price, coverage &amp; match confidence</span></span><Icon name="down" size={18} /></summary>{analysisOpen && <div className="overview-analysis-grid">
           <Section className="overview-price-section" eyebrow="Distribution" title="Price" fill
             caption="Log-scaled — retail pharmacy prices span four orders of magnitude. Solid rule is the median, dashed are p10 and p90.">
             <PriceCurve prices={stats.prices} p10={stats.price.p10} p50={stats.price.p50}
@@ -468,7 +451,7 @@ export default function Overview({ store, onNavigate, setFilters }) {
             caption={<>Confidence falls with short keys, missing pack size and wide price spread, and recovers when independent sources agree on price.</>}>
             <ConfidenceArc counts={stats.byMatch} labels={D.matchBand} tip={tip} size={150} />
           </Section>
-        </div>
+        </div>}</details>
       </div>
     </div>
   );

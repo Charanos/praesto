@@ -23,6 +23,7 @@ import {
 import { useTip, useMeasure, SourceBars, TypeMix, PriceCurve, BandSteps, Matrix } from '../components/charts.jsx';
 
 const ROW_H = 56;
+const EMPTY_STATS = {clinical:0,oosAny:0,avgListed:0,withMono:0,price:{p10:null,p50:null,p90:null},prices:[],byType:[],byBand:[]};
 
 /**
  * `minmax(0, …)` on the flexible column is what stops the grid pushing past
@@ -62,44 +63,45 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
   const mobile = useSmallScreen();
   const [showFacets, setShowFacets] = useState(false);
   const [analysisColumns, setAnalysisColumns] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const viewportRef = useRef(null);
   const tip = useTip();
 
   const patch = (p) => setFilters({ ...filters, ...p });
 
   const { rows } = useMemo(() => runFilter(store, filters, sort), [store, filters, sort]);
-  const stats = useMemo(() => summarise(store, rows), [store, rows]);
-  const sources = useMemo(() => sourceBreakdown(store, rows), [store, rows]);
+  const stats = useMemo(() => showFacets || summaryOpen || view==='charts' ? summarise(store, rows) : EMPTY_STATS, [store, rows,showFacets,summaryOpen,view]);
+  const sources = useMemo(() => view==='charts' ? sourceBreakdown(store, rows) : [], [store, rows,view]);
 
   const typeN = useMemo(
-    () => facetCounts(store, filters, 'types', D.type.length, (i) => P.type[i]),
-    [store, filters],
+    () => showFacets ? facetCounts(store, filters, 'types', D.type.length, (i) => P.type[i]) : [],
+    [store, filters,showFacets],
   );
   const bandN = useMemo(
-    () => facetCounts(store, filters, 'bands', D.band.length, (i) => P.band[i]),
-    [store, filters],
+    () => showFacets ? facetCounts(store, filters, 'bands', D.band.length, (i) => P.band[i]) : [],
+    [store, filters,showFacets],
   );
   const formN = useMemo(
-    () => facetCounts(store, filters, 'forms', D.form.length, (i) => P.form[i]),
-    [store, filters],
+    () => showFacets ? facetCounts(store, filters, 'forms', D.form.length, (i) => P.form[i]) : [],
+    [store, filters,showFacets],
   );
   const matchN = useMemo(
-    () => facetCounts(store, filters, 'matchBands', D.matchBand.length, (i) => P.matchBand[i]),
-    [store, filters],
+    () => showFacets ? facetCounts(store, filters, 'matchBands', D.matchBand.length, (i) => P.matchBand[i]) : [],
+    [store, filters,showFacets],
   );
   const gapN = useMemo(
-    () => facetCounts(store, filters, 'gaps', D.gap.length, (i) => P.gap[i]),
-    [store, filters],
+    () => showFacets ? facetCounts(store, filters, 'gaps', D.gap.length, (i) => P.gap[i]) : [],
+    [store, filters,showFacets],
   );
   const catN = useMemo(
-    () => facetCounts(store, filters, 'categories', D.category.length, (i) => P.categories[i]),
-    [store, filters],
+    () => showFacets ? facetCounts(store, filters, 'categories', D.category.length, (i) => P.categories[i]) : [],
+    [store, filters,showFacets],
   );
   const therN = useMemo(
-    () => facetCounts(store, filters, 'therapeutic', D.therapeutic.length, (i) => P.therapeutic[i]),
-    [store, filters],
+    () => showFacets ? facetCounts(store, filters, 'therapeutic', D.therapeutic.length, (i) => P.therapeutic[i]) : [],
+    [store, filters,showFacets],
   );
-  const shopN = useMemo(() => shopCounts(store, filters, 'shopsAny'), [store, filters]);
+  const shopN = useMemo(() => showFacets ? shopCounts(store, filters, 'shopsAny') : {listed:[],inStock:[],oos:[]}, [store, filters,showFacets]);
 
   const chips = activeChips(filters, store);
   const range = useVirtual({ count: rows.length, rowHeight: ROW_H, viewportRef });
@@ -300,7 +302,7 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
 
       {/* ------------------------------------------------------------ main */}
       <div className="catalogue-main" ref={gridRef}>
-        <header className="catalogue-heading"><h1 className="h1">Find &amp; compare</h1><span className="catalogue-result-count" role="status" aria-live="polite">{n0(rows.length)} results</span></header>
+        <div className="catalogue-count-row"><span className="catalogue-result-count" role="status" aria-live="polite">{n0(rows.length)} results</span></div>
         {/* toolbar */}
         <div className="catalogue-toolbar">
           <div className="catalogue-command-row">
@@ -347,7 +349,7 @@ export default function Catalogue({ store, filters, setFilters, tipHost }) {
         </div>
 
         {/* result summary strip */}
-        <details className="catalogue-selection-summary"><summary>Selection statistics</summary><div className="provenance catalogue-telemetry">
+        <details className="catalogue-selection-summary" onToggle={event=>setSummaryOpen(event.currentTarget.open)}><summary>Selection statistics</summary><div className="provenance catalogue-telemetry">
           <span><b className="num" style={{ color: 'var(--ink)' }}>{n0(stats.clinical)}</b> clinical</span>
           <span className="sep">·</span>
           <span><b className="num" style={{ color: 'var(--ink)' }}>{n0(stats.oosAny)}</b> with a stockout</span>
@@ -552,7 +554,7 @@ function Detail({ store, i, onClose, onPick, tip }) {
     if (a < 0) return [];
     return (store.byIngredient?.get(a) ?? [])
       .filter((j) => j !== i)
-      .sort((x, y) => P.nIn[y] - P.nIn[x] || P.nListed[y] - P.nListed[x])
+      .sort((x, y) => popcount(P.inMask[y]) - popcount(P.inMask[x]) || P.nListed[y] - P.nListed[x])
       .slice(0, 6);
   }, [store, P, i]);
   const [listings, setListings] = useState(() => (store.listings ? listingsFor(store, i) : null));
@@ -578,6 +580,13 @@ function Detail({ store, i, onClose, onPick, tip }) {
   }, [store, i, attempt]);
 
   const band = D.band[P.band[i]];
+  const jumpTo = id => {
+    const target = document.getElementById(id);
+    if (!target) return;
+    if (target.tagName === 'DETAILS') target.open = true;
+    target.scrollIntoView({block:'start'});
+    target.focus({preventScroll:true});
+  };
 
   return (
     <Modal className="drawer" labelledBy="product-title" onClose={onClose}>
@@ -589,6 +598,7 @@ function Detail({ store, i, onClose, onPick, tip }) {
             </button>
           </div>
           <h2 className="h2 drawer-title" id="product-title">{P.name[i]}</h2>
+          <p className="detail-ingredient">{P.ingredient[i] >= 0 ? D.ingredient[P.ingredient[i]] : 'Active ingredient not linked in the local reference'}</p>
           <div className="row wrap drawer-tags">
             <Tag tone={P.clinical[i] ? 'accent' : 'plain'}>{D.type[P.type[i]].replace(/_/g, ' ')}</Tag>
             {band !== 'none' && <Tag tone={P.nOos[i] >= 3 ? 'out' : 'plain'}>{band}</Tag>}
@@ -597,6 +607,7 @@ function Detail({ store, i, onClose, onPick, tip }) {
           </div>
         </header>
 
+        <nav className="detail-section-nav" aria-label="Product detail sections"><button onClick={()=>jumpTo('product-listings')}>Pharmacy listings</button>{P.ingredient[i]>=0 && <button onClick={()=>jumpTo('product-reference')}>Clinical reference</button>}<button onClick={()=>jumpTo('product-identity')}>Product identity</button></nav>
         <div className="drawer-body">
           <p className="detail-caveat">Snapshot evidence · collection date inferred. Confirm current stock and price before visiting.</p>
           <div className="kpis">
@@ -623,13 +634,13 @@ function Detail({ store, i, onClose, onPick, tip }) {
             </div>
           </div>
 
-          <div className="drawer-section"><h3>Pharmacy listings &amp; prices</h3>
+          <div className="drawer-section" id="product-listings" tabIndex={-1}><h3>Pharmacy listings &amp; prices</h3>
           <p className="reader-intro">Each row is a collected listing. “Stock not reported” means the source does not provide a usable stock signal.</p>
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {[0, 1, 2].map((k) => <div key={k} className="sk" style={{ height: 34 }} />)}
             </div>
-          ) : listingError ? <div className="feedback" role="alert"><p>Source listings could not load. Check your connection and try again.</p><button className="btn" onClick={() => setAttempt(a => a + 1)}>Retry source listings</button></div> : (
+          ) : listingError ? <div className="feedback" role="alert"><p>Source listings could not load for this snapshot. Try loading them again.</p><button className="btn" onClick={() => setAttempt(a => a + 1)}>Retry source listings</button></div> : (
             <ul className="source-observations" aria-label="Pharmacy listings and prices">
               {listings?.map((listing, key) => <li className="source-observation" key={key}>
                 <div className="observation-identity"><h4>{listing.shop.name}</h4><span className="observation-name">{listing.rawName}</span></div>
@@ -641,7 +652,7 @@ function Detail({ store, i, onClose, onPick, tip }) {
 
           </div>
 
-          <details className="drawer-section secondary-detail">
+          <details className="drawer-section secondary-detail" id="product-identity" tabIndex={-1}>
             <summary>Product identity &amp; matching details</summary>
             <dl className="kv">
             <dt>Match key</dt>

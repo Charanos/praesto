@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
 const routeNames = {overview:'Overview',catalogue:'Catalogue',sources:'Sources',quality:'Data quality'};
 export async function navigate(tab,name) {
+  await tab.playwright.locator('.app[data-ready="true"]').waitFor({state:'visible',timeoutMs:20000});
   const nav=tab.playwright.getByRole('navigation',{name:'Main navigation'});
   const launcher=nav.getByRole('button',{name:'Open workspace menu',exact:true});
   if(await launcher.isVisible()) { await launcher.click(); await tab.playwright.domSnapshot(); }
@@ -37,6 +38,49 @@ export async function mobileNavigation(tab,viewport,directory,width=375) {
   assert.equal(await trigger.getAttribute('aria-expanded'),'false');
   await navigate(tab,'Sources'); assert.equal(await trigger.getAttribute('aria-expanded'),'false');
   return {width,placement,passed:['collapsed dark surface','bottom right','hidden destinations when collapsed','current destination focus','Home/End/arrows','Escape restores focus','outside click','route selection closes']};
+}
+export async function sectionWorkflow(tab,viewport,directory,width) {
+  await viewport.set({width,height:900});await tab.playwright.domSnapshot();
+  await navigate(tab,'Sources');
+  const list=tab.playwright.getByRole('list',{name:'Pharmacy sources',exact:true});
+  assert.equal(await list.getByRole('listitem').count(),15);
+  await tab.playwright.getByRole('button',{name:/^Reporting stock/}).click();
+  assert.equal(await list.getByRole('listitem').count(),8);
+  await tab.playwright.getByRole('button',{name:/^Listings only/}).click();
+  assert.equal(await list.getByRole('listitem').count(),7);
+  assert.equal(await list.getByText('No rate available',{exact:true}).count(),7);
+  await tab.playwright.getByRole('textbox',{name:'Find a pharmacy source',exact:true}).fill('not-a-pharmacy-xyz');
+  await tab.playwright.getByRole('button',{name:'Reset source filters',exact:true}).click();
+  assert.equal(await list.getByRole('listitem').count(),15);
+  await tab.playwright.getByRole('textbox',{name:'Find a pharmacy source',exact:true}).fill('Garnet');
+  assert.equal(await list.getByRole('listitem').count(),1);
+  await list.getByRole('button',{name:'Garnet Pharmacy',exact:true}).press('Enter');
+  assert.equal(await list.getByRole('button',{name:'Garnet Pharmacy',exact:true}).getAttribute('aria-expanded'),'true');
+  assert.ok(await list.getByText('Collection & evidence',{exact:true}).isVisible());
+  assert.ok((await list.textContent()).includes('25.1'));
+  await writeFile(`${directory}/after-source-detail-${width}.jpg`,await tab.screenshot({fullPage:false}));
+  await list.getByRole('button',{name:'Browse Garnet Pharmacy listings',exact:true}).click();
+  await tab.playwright.domSnapshot();assert.ok((await tab.url()).includes('sa=0'));
+  await navigate(tab,'Data quality');
+  await tab.playwright.getByRole('button',{name:'Review product matches',exact:true}).click();
+  await tab.playwright.domSnapshot();assert.ok((await tab.url()).includes('rv=needs_review'));
+  assert.ok((await tab.playwright.locator('.catalogue-result-count').textContent()).includes('3,398'));
+  await navigate(tab,'Data quality');
+  await tab.playwright.getByRole('button',{name:'Explore reference gaps',exact:true}).click();
+  await tab.playwright.domSnapshot();assert.ok((await tab.url()).includes('g='));
+  assert.ok((await tab.playwright.locator('.catalogue-result-count').textContent()).includes('9,041'));
+  await navigate(tab,'Overview');
+  await tab.playwright.getByRole('button',{name:'All feeds',exact:true}).first().click();
+  await tab.playwright.domSnapshot();assert.ok((await tab.playwright.locator('.section-explainer').textContent()).includes('Sensitivity only'));
+  await tab.playwright.getByRole('button',{name:'Reporting feeds',exact:true}).first().click();
+  assert.ok((await tab.playwright.locator('.pulse-pct').textContent()).includes('59.7'));
+  await tab.playwright.locator('.overview-analysis-disclosure > summary').press('Enter');
+  await tab.playwright.getByRole('heading',{name:'Price',exact:true}).waitFor({state:'visible'});
+  assert.ok(await tab.playwright.getByRole('heading',{name:'Coverage',exact:true}).isVisible());
+  await writeFile(`${directory}/after-overview-analysis-${width}.jpg`,await tab.screenshot({fullPage:false}));
+  await tab.playwright.locator('.overview-analysis-disclosure > summary').press('Enter');
+  await tab.playwright.domSnapshot();
+  return {width,passed:['15/8/7 source groups','source name search','source empty/reset','keyboard disclosure','listing-grain rate','source-to-catalogue','review queue count/filter','reference gap count/filter','sensitivity label and restoration']};
 }
 export async function captureRoutes(tab, viewport, directory, width) {
   await viewport.set({width,height:width===375?812:900});
@@ -102,10 +146,13 @@ export async function catalogueWorkflow(tab,viewport,directory,width) {
   await tab.playwright.domSnapshot();
   const title=await tab.playwright.locator('#product-title').textContent();
   assert.ok(title);
+  await tab.playwright.getByRole('navigation',{name:'Product detail sections'}).getByRole('button',{name:'Clinical reference',exact:true}).click();
+  assert.equal(await tab.playwright.evaluate(()=>document.activeElement?.id),'product-reference');
   await tab.playwright.getByRole('button',{name:'Read clinical reference',exact:true}).press('Enter');
   await tab.playwright.getByText(/Local reference preview/).waitFor({state:'visible',timeoutMs:15000});
   await tab.playwright.getByText('Mode of action',{exact:true}).press('Enter');
   await tab.playwright.domSnapshot();
+  assert.ok(await tab.playwright.getByRole('heading',{name:'Use & action',exact:true}).isVisible());
   await writeFile(`${directory}/after-reference-${width}.jpg`,await tab.screenshot({fullPage:false}));
   await tab.playwright.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).press('Escape');
   await tab.playwright.domSnapshot();
@@ -166,5 +213,9 @@ export async function auditInteractiveStates(tab,viewport,width) {
   await navigate(tab,'Sources');
   await tab.playwright.getByRole('button',{name:'Garnet Pharmacy',exact:true}).press('Enter');
   await tab.playwright.domSnapshot(); await audit('expanded source ledger');
+  await navigate(tab,'Overview');
+  await tab.playwright.locator('.overview-analysis-disclosure > summary').press('Enter');
+  await tab.playwright.getByRole('heading',{name:'Price',exact:true}).waitFor({state:'visible'});
+  await audit('expanded overview analysis');
   return results;
 }
