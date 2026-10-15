@@ -6,6 +6,10 @@ Updated 14 October 2026. Update this tracker after each completed milestone: rec
 
 ## Milestone board
 
+### Drug Index capture · 15 October 2026
+
+Captured and verified 84,800 source records across 32 datasets into a private local archive. Added a development-only searchable reference library, exact ingredient bridge and repeatable collection/preparation tools. Active reference: 6,016 brands / 2,372 ingredients. Refreshed matching reaches 11,697 dashboard products. Stock/price evidence is unchanged. Verification and publication boundaries: [capture guide](docs/DRUGINDEX_CAPTURE.md). Public builds include the curated dashboard reference links; full clinical data and the reader remain local.
+
 ### Current screen overhaul
 
 | Surface | State | Outcome / next step |

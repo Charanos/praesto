@@ -2073,3 +2073,7 @@ dialog.catalogue-product-dialog:not([open]) {
 .catalogue-title-count h1 { max-width:38ch; overflow-wrap:anywhere; }
 .catalogue-title-count .catalogue-scope-description { font-size:14px; line-height:1.8; color:var(--ink-3); margin-top:10px; max-width:65ch; }
 @media (max-width:760px) { .catalogue-applied-chips > button { min-height:44px; } .catalogue-title-count .catalogue-scope-description { font-size:14px; } .source-gap-ledger { gap:0; } }
+.catalogue-library-trigger { display:flex; gap:12px; align-items:center; min-height:44px; padding:10px 0; background:transparent; border:0; color:inherit; font-size:14px; margin-bottom:20px; text-align:left; }
+.catalogue-library-trigger svg { color:var(--cobalt); }
+.catalogue-control-extension .catalogue-library-trigger { color:var(--text-on-inverse); }
+.catalogue-control-extension .catalogue-library-trigger svg { color:#bdd4f6; }

@@ -21,6 +21,7 @@ import CatalogueSelectionStats from '../components/CatalogueSelectionStats';
 import PharmacyGlyph, { PharmacyStack } from '../components/PharmacyGlyph';
 import { useCatalogueDesktop } from '../components/useCatalogueDesktop';
 const CatalogueAnalytics = lazy(() => import('../components/CatalogueAnalytics'));
+const ReferenceLibrary = import.meta.env.DEV ? lazy(() => import('../components/ReferenceLibrary')) : null;
 import { EvidenceBadge } from '../components/EvidenceControls';
 import ClinicalReader from '../components/ClinicalReader.tsx';
 import { useSmallScreen } from '../components/useSmallScreen.ts';
@@ -72,6 +73,7 @@ export default function Catalogue({ store, filters, setFilters, tipHost, control
   const { P, D, shops } = store;
   const [sort, setSort] = useState({ key: 'relevance', dir: 'desc' });
   const [selected, setSelected] = useState(null);
+  const [referenceOpen, setReferenceOpen] = useState(false);
   const [view, setView] = useState('grid');
   const mobile = useSmallScreen();
   const rowHeight = mobile ? 104 : ROW_H;
@@ -319,12 +321,12 @@ export default function Catalogue({ store, filters, setFilters, tipHost, control
       {showFacets && desktop && controlsDock && createPortal(<aside className="catalogue-control-extension" id="catalogue-controls" aria-label="Catalogue controls">
         <header className="catalogue-extension-head"><div><h2>Refine catalogue.</h2><p>Scope &amp; evidence</p></div><button aria-label="Collapse catalogue controls" onClick={() => setShowFacets(false)}><Icon name="x" size={18}/></button></header>
         <div className="catalogue-extension-scroll">
-          <CatalogueToolbar mode="controls" tone={desktop ? "inverse" : "light"} filters={filters} shops={shops} count={rows.length} total={P.n} stockChoice={stockChoice} sort={sort} onSort={setSort} pageSize={paging.size} onPageSize={setPageSize} view={view} onView={setView} onPatch={patch} onRefine={() => setShowFacets(false)} onReset={() => setFilters({ ...EMPTY })} chips={chips}/>
+          <CatalogueToolbar mode="controls" onReference={ReferenceLibrary ? () => setReferenceOpen(true) : undefined} tone={desktop ? "inverse" : "light"} filters={filters} shops={shops} count={rows.length} total={P.n} stockChoice={stockChoice} sort={sort} onSort={setSort} pageSize={paging.size} onPageSize={setPageSize} view={view} onView={setView} onPatch={patch} onRefine={() => setShowFacets(false)} onReset={() => setFilters({ ...EMPTY })} chips={chips}/>
           <CatalogueSelectionStats stats={stats} onToggle={setSummaryOpen}/>{facetPanel}
         </div>
       </aside>, controlsDock)}
       {showFacets && !desktop && <CatalogueFilterWorkspace count={rows.length} activeCount={chips.length} onClose={() => setShowFacets(false)} onReset={() => setFilters({ ...EMPTY })}>
-        <div id="catalogue-controls"><CatalogueToolbar mode="controls" tone={desktop ? "inverse" : "light"} filters={filters} shops={shops} count={rows.length} total={P.n} stockChoice={stockChoice} sort={sort} onSort={setSort} pageSize={paging.size} onPageSize={setPageSize} view={view} onView={setView} onPatch={patch} onRefine={() => setShowFacets(false)} onReset={() => setFilters({ ...EMPTY })} chips={chips}/><CatalogueSelectionStats stats={stats} onToggle={setSummaryOpen}/>{facetPanel}</div>
+        <div id="catalogue-controls"><CatalogueToolbar mode="controls" onReference={ReferenceLibrary ? () => setReferenceOpen(true) : undefined} tone={desktop ? "inverse" : "light"} filters={filters} shops={shops} count={rows.length} total={P.n} stockChoice={stockChoice} sort={sort} onSort={setSort} pageSize={paging.size} onPageSize={setPageSize} view={view} onView={setView} onPatch={patch} onRefine={() => setShowFacets(false)} onReset={() => setFilters({ ...EMPTY })} chips={chips}/><CatalogueSelectionStats stats={stats} onToggle={setSummaryOpen}/>{facetPanel}</div>
       </CatalogueFilterWorkspace>}
       <div className="catalogue-main" ref={gridRef} onScrollCapture={e => { if(e.target === viewportRef.current) setShowTop(e.target.scrollTop > 360); }}>
 
@@ -389,6 +391,7 @@ export default function Catalogue({ store, filters, setFilters, tipHost, control
         <Detail store={store} i={selected} onClose={() => setSelected(null)}
           onPick={setSelected} tip={tip} />
       )}
+      {referenceOpen && ReferenceLibrary && <Suspense fallback={<p role="status">Opening reference library…</p>}><ReferenceLibrary onClose={() => setReferenceOpen(false)}/></Suspense>}
     </div>
   );
 }

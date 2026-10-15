@@ -2,6 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import {loadReferenceCatalogue,clinicalFromCatalogue} from './reference-catalogue.js';
 const input = fileURLToPath(new URL('../../04_Working Data/drugindex_active_ingredients.json', import.meta.url));
 const fields = ['indications', 'mode_of_action', 'precautions', 'contraindications', 'drug_interactions', 'side_effects', 'dosage', 'special_information', 'pregnancy_information', 'pregnancy_risk_category', 'breastfeeding', 'considerations', 'additional_labelling'];
 export function localReference() {
@@ -14,6 +15,11 @@ export function localReference() {
         if (request.method !== 'GET') { response.statusCode = 405; response.end('{}'); return; }
         try {
           const ingredient = new URL(request.url, 'http://localhost').searchParams.get('ingredient');
+          try {
+            const captured=clinicalFromCatalogue(await loadReferenceCatalogue(),ingredient);
+            if(!captured){response.statusCode=404;response.end('{}');return;}
+            response.end(JSON.stringify(captured));return;
+          } catch(error) { if(error.code!=='ENOENT') throw error; }
           const raw = await readFile(input, 'utf8');
           const records = JSON.parse(raw);
           const matches = records.filter(record => record.name === ingredient);

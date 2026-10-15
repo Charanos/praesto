@@ -1,5 +1,6 @@
 /** Evidence workbench: linkage, matching and stock reporting keep their own denominators. */
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
+const ReferenceLibrary = import.meta.env.DEV ? lazy(() => import('../components/ReferenceLibrary')) : null;
 import { runFilter, summarise, EMPTY } from "../lib/filters.js";
 import { Icon, n0, n1 } from "../components/ui.jsx";
 import { EvidenceBadge, PillToggle } from "../components/EvidenceControls";
@@ -43,6 +44,7 @@ function CoverageRow({ label, count, total, tone }) {
   );
 }
 export default function Quality({ store, onNavigate, setFilters }) {
+  const [referenceOpen,setReferenceOpen]=useState(false);
   const { meta, P, D } = store,
     cov = meta.coverage,
     h = meta.headline;
@@ -107,6 +109,7 @@ export default function Quality({ store, onNavigate, setFilters }) {
     unmatched = cov.products_total - matched;
   return (
     <div className="quality-workbench">
+      {referenceOpen && ReferenceLibrary && <Suspense fallback={<p role="status">Opening reference library…</p>}><ReferenceLibrary onClose={()=>setReferenceOpen(false)}/></Suspense>}
       <section className="quality-summary" aria-label="Evidence overview">
         <div className="quality-summary-reference">
           <div className="quality-summary-top">
@@ -234,6 +237,7 @@ export default function Quality({ store, onNavigate, setFilters }) {
             />
             <div className="quality-field-annotation">
               <h4>Reference matches are a starting point.</h4>
+              {ReferenceLibrary && <button className="btn" onClick={()=>setReferenceOpen(true)}><Icon name="book" size={17}/>Browse Drug Index library</button>}
               <p>
                 A product can reach the register without every clinical field
                 being available. Ingredient, strength, form and pack still need

@@ -9,6 +9,8 @@ engine, a classification layer and Parquet read models.
 the frozen surface between the backend and the dashboard, and `verify.js`
 asserts it on every build.
 
+The [Drug Index capture guide](docs/DRUGINDEX_CAPTURE.md) describes the verified local archive, refresh tools and searchable development-only reference library. Full clinical source data stays outside the repository and public bundle.
+
 ```bash
 npm install
 npm run pipeline:build # raw JSON -> data/*.parquet + data/kpad.duckdb (local data workspace)

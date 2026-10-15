@@ -42,6 +42,7 @@ export default function CatalogueToolbar({
   tone = "light",
   title = "Find & compare",
   description = "",
+  onReference,
 }: {
   filters: OverviewFilters;
   shops: OverviewPharmacy[];
@@ -63,6 +64,7 @@ export default function CatalogueToolbar({
   onPageSize?: (size: number) => void;
   title?: string;
   description?: string;
+  onReference?: () => void;
 }) {
   const reporting = shops.filter((s) => s.publishes_oos).map((s) => s.bit);
   const selectedSort = `${sort.key}:${sort.dir}`;
@@ -114,6 +116,13 @@ export default function CatalogueToolbar({
       )}
       {mode === "controls" && (
         <>
+          {onReference && (
+            <button className="catalogue-library-trigger" onClick={onReference}>
+              <Icon name="book" size={18} />
+              Drug Index library
+              <Icon name="right" size={14} />
+            </button>
+          )}
           <div className="catalogue-command-filters">
             <label className="catalogue-filter-field">
               <Icon name="package-check" size={18} />
