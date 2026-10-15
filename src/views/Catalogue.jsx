@@ -11,6 +11,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Modal from '../components/Modal.tsx';
 import CatalogueToolbar from '../components/CatalogueToolbar';
+import { catalogueContext } from '../lib/catalogue-context';
 import CatalogueResultRow from '../components/CatalogueResultRow';
 import CatalogueFilterWorkspace from '../components/CatalogueFilterWorkspace';
 import './product-reader.css';
@@ -308,7 +309,8 @@ export default function Catalogue({ store, filters, setFilters, tipHost, control
         </div>
   );
 
-  const resultHeader = (<CatalogueToolbar filters={filters} shops={shops} count={rows.length} total={P.n} stockChoice={stockChoice} sort={sort} onSort={setSort} pageSize={paging.size} onPageSize={setPageSize} view={view} onView={setView} onPatch={patch} onRefine={() => setShowFacets(!showFacets)} controlsOpen={showFacets} onReset={() => setFilters({ ...EMPTY })} chips={chips}/>);
+  const catalogueHeading = catalogueContext(filters, store.D, shops);
+  const resultHeader = (<CatalogueToolbar title={catalogueHeading.title} description={catalogueHeading.description} filters={filters} shops={shops} count={rows.length} total={P.n} stockChoice={stockChoice} sort={sort} onSort={setSort} pageSize={paging.size} onPageSize={setPageSize} view={view} onView={setView} onPatch={patch} onRefine={() => setShowFacets(!showFacets)} controlsOpen={showFacets} onReset={() => setFilters({ ...EMPTY })} chips={chips}/>);
 
   return (
     <div className="catalogue-shell">

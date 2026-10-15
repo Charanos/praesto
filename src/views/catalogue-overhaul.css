@@ -2045,3 +2045,31 @@ dialog.catalogue-product-dialog:not([open]) {
 
 .facet-opt input[type='checkbox'] { width: 16px; height: 16px; flex: 0 0 16px; border: 1px solid var(--line-strong); border-radius: 3px; background: var(--surface); cursor: pointer; }
 .facet-opt input[type='checkbox']:checked { background: var(--accent); border-color: var(--accent); }
+/* Selection chrome groups active predicates without occupying the results canvas. */
+.catalogue-command-controls .catalogue-applied { display:block; padding:16px; margin-block:12px 20px; border-radius:13px; background:var(--surface-sunk); border:1px solid var(--line); }
+.catalogue-applied > header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; font-size:12px; color:var(--ink-3); }
+.catalogue-applied > header > span { display:flex; align-items:center; gap:8px; }
+.catalogue-applied > header b { font-weight:400; font-size:11px; }
+.catalogue-applied > header .catalogue-clear { min-height:32px; padding:0; font-size:12px; font-weight:650; color:var(--ink-2); border:0; }
+.catalogue-applied-chips { display:flex; flex-wrap:wrap; gap:9px; }
+.catalogue-applied-chips > button { --chip-text:#245a97; --chip-bg:#eaf1fc; --chip-border:#bed1ec; display:flex; align-items:center; gap:8px; min-height:34px; max-width:100%; border:1px solid var(--chip-border); border-radius:18px; background:var(--chip-bg); color:var(--chip-text); padding:5px 9px; text-align:left; font-size:13px; line-height:1.6; }
+.catalogue-applied-chips > button > span { overflow-wrap:anywhere; min-width:0; }
+.catalogue-applied-chips > button > svg { flex-shrink:0; }
+.catalogue-applied-chips > button[data-tone=berry] { --chip-text:#824867; --chip-bg:#f8edf4; --chip-border:#ddc3d2; }
+.catalogue-applied-chips > button[data-tone=amber] { --chip-text:#855700; --chip-bg:#fff3dc; --chip-border:#e3c68d; }
+.catalogue-applied-chips > button[data-tone=coral] { --chip-text:#a83b32; --chip-bg:#fff0ec; --chip-border:#e9beb8; }
+.catalogue-applied-chips > button[data-tone=teal] { --chip-text:#086b60; --chip-bg:#e7f4ef; --chip-border:#aed4c9; }
+.catalogue-applied-chips > button[data-tone=slate] { --chip-text:#445268; --chip-bg:#edf0f5; --chip-border:#c5cedd; }
+.console-control-dock .catalogue-command-controls .catalogue-applied { background:linear-gradient(155deg,#2a303a,#222730); border-color:#424c5b; box-shadow:inset 0 1px 0 #ffffff0a; }
+.console-control-dock .catalogue-applied > header { color:#c8d0dc; }
+.console-control-dock .catalogue-applied > header .catalogue-clear { color:#e1e7ef; }
+.console-control-dock .catalogue-applied-chips > button { --chip-text:#c5dcff; --chip-bg:#283b55; --chip-border:#4b6588; }
+.console-control-dock .catalogue-applied-chips > button[data-tone=berry] { --chip-text:#f0c9e2; --chip-bg:#443044; --chip-border:#76536e; }
+.console-control-dock .catalogue-applied-chips > button[data-tone=amber] { --chip-text:#f6d594; --chip-bg:#443a28; --chip-border:#796441; }
+.console-control-dock .catalogue-applied-chips > button[data-tone=coral] { --chip-text:#f7c2b9; --chip-bg:#47312f; --chip-border:#81564f; }
+.console-control-dock .catalogue-applied-chips > button[data-tone=teal] { --chip-text:#b4e5d8; --chip-bg:#263e38; --chip-border:#48776b; }
+.console-control-dock .catalogue-applied-chips > button[data-tone=slate] { --chip-text:#d5dce8; --chip-bg:#343c49; --chip-border:#5a677a; }
+.catalogue-applied-chips > button:hover { filter:brightness(1.08); }
+.catalogue-title-count h1 { max-width:38ch; overflow-wrap:anywhere; }
+.catalogue-title-count .catalogue-scope-description { font-size:14px; line-height:1.8; color:var(--ink-3); margin-top:10px; max-width:65ch; }
+@media (max-width:760px) { .catalogue-applied-chips > button { min-height:44px; } .catalogue-title-count .catalogue-scope-description { font-size:14px; } .source-gap-ledger { gap:0; } }

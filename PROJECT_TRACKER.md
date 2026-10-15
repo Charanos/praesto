@@ -87,3 +87,4 @@ The older phase board below records foundational implementation, not acceptance 
 
 | 14 Oct | Catalogue, Sources and Data Quality overhaul verified at desktop/phone/320px. 29 tests and 96 local contract checks pass. Dynamic favicon switches on system preference changes. Repository renamed to Charanos/praesto; dashboard CI introduced for the versioned snapshot. Deployment status will be recorded after live verification. |
 
+| 15 Oct | Replaced the Catalogue matrix with a visual stock-pattern comparison and named evidence flow; refined dynamic headings, selected-filter colours and Sources capture alignment. 36 tests, 96 contract checks, desktop/375/320px comparison workflows and modal backdrop checks passed. Main push authorized by client. |

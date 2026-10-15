@@ -19,7 +19,8 @@ export default function CataloguePagination({
         <b className="num">
           {n0(page * size + 1)}–{n0(Math.min(total, (page + 1) * size))}
         </b>{" "}
-        of <span className="num">{n0(total)}</span> results
+        of <span className="num">{n0(total)}</span>{" "}
+        {total === 1 ? "result" : "results"}
       </p>
       <nav aria-label="Product result pages">
         <button

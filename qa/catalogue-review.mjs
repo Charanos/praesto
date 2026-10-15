@@ -31,7 +31,7 @@ export async function reviewCatalogue(tab, viewport, directory, width) {
   };
   const closeControls=async()=>{
     if(width>1100) await tab.playwright.locator('.catalogue-extension-head').getByRole('button',{name:'Collapse catalogue controls',exact:true}).click();
-    else await tab.playwright.getByRole('button',{name:/^Show .* results$/}).click();
+    else await tab.playwright.getByRole('button',{name:/^Show .* results?$/}).click();
     await tab.playwright.domSnapshot();
   };
   await openControls();
@@ -101,10 +101,10 @@ export async function reviewCatalogue(tab, viewport, directory, width) {
   assert.ok((await tab.playwright.locator('.catalogue-result-count').textContent()).includes('43,606'));
   record('empty recovery resets complete filter state');
   await tab.playwright.getByRole('button',{name:'Matrix',exact:true}).click(); await tab.playwright.domSnapshot();
-  assert.equal(await tab.playwright.locator('.catalogue-matrix-scroll tbody tr').count(),40);
-  assert.equal(await tab.playwright.locator('.catalogue-matrix-scroll thead .pharmacy-glyph').count(),15);
-  assert.ok(await tab.playwright.getByRole('region',{name:'Product by pharmacy stock matrix'}).isVisible());
-  record('40-product contained matrix with 15 named source glyphs');
+  assert.equal(await tab.playwright.getByRole('listbox',{name:'Products to compare'}).getByRole('option').count(),40);
+  assert.equal(await tab.playwright.locator('.stock-evidence-sources .pharmacy-glyph').count(),15);
+  assert.ok(await tab.playwright.getByRole('region',{name:'Visual pharmacy comparison'}).isVisible());
+  record('40-product visual pattern map with 15 named sources in the selected evidence flow');
   await capture('matrix'); await audit('matrix');
   await tab.playwright.getByRole('button',{name:'Charts',exact:true}).click();
   await tab.playwright.getByRole('heading',{name:'Price distribution',exact:true}).waitFor({state:'visible'});

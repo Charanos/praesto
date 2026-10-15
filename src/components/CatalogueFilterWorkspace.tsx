@@ -49,7 +49,7 @@ export default function CatalogueFilterWorkspace({
           Reset
         </button>
         <button className="btn btn-primary" onClick={onClose}>
-          Show {n0(count)} results
+          Show {n0(count)} {count === 1 ? "result" : "results"}
           <Icon name="right" size={16} />
         </button>
       </footer>

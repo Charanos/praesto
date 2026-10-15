@@ -10,6 +10,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react
 import { buildCsv } from './lib/export.js';
 import { loadStore } from './lib/store-loader.js';
 import { installAdaptiveFavicon } from './lib/favicon';
+import { catalogueContext } from './lib/catalogue-context';
 import { encodeFilters, decodeFilters } from './lib/filters.js';
 import { Icon, fmtDate } from './components/ui.jsx';
 import WorkspaceFooter from "./components/WorkspaceFooter.tsx";
@@ -94,7 +95,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  useEffect(() => { document.title = `${NAV.find(n => n.id === view)?.label || 'Design system'} · Praesto`; }, [view]);
+  useEffect(() => { document.title = view === 'catalogue' ? catalogueContext(filters, store?.D, store?.shops).title + ' · Catalogue · Praesto' : (NAV.find(n => n.id === view)?.label || 'Design system') + ' · Praesto'; }, [view, filters, store]);
 
   const navigate = useCallback((v) => setView(v), []);
 

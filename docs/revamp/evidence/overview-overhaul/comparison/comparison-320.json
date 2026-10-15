@@ -1,0 +1,25 @@
+{
+  "width": 320,
+  "checks": [
+    "40 sampled products, four patterns, named source partition, no table",
+    "arrow-key product selection updates named evidence",
+    "pattern selection and touch circle selection narrow products; reset restores all",
+    "product inspector opens as native modal with dimmed blurred background; Escape closes",
+    "no horizontal page overflow and zero automated accessibility violations"
+  ],
+  "backdrop": {
+    "background": "rgba(17, 19, 22, 0.42)",
+    "blur": "blur(3px)",
+    "modal": true
+  },
+  "audit": {
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 31
+      }
+    ],
+    "passes": 45
+  }
+}

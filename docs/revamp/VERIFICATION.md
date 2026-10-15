@@ -68,3 +68,14 @@ The current implementation replaces the Overview, Catalogue, Sources and Data Qu
 - Dynamic favicon unit coverage verifies initial light, dark change, light change and listener cleanup. SVG also has a prefers-color-scheme fallback; PNG variants retain theme media queries. The application itself stays light.
 
 Evidence: evidence/overview-overhaul/catalogue/review-1280.json, review-375.json; evidence-pages/review-320.json, review-375.json, review-1280.json and associated real UI captures. Manual screen-reader/contrast follow-through remains distinct from automated results. Licensed clinical feed activation and new snapshot promotion remain gated.
+
+## Comparison and context refinement · 15 October 2026
+
+- Replaced the 40-by-15 matrix table with a Recharts pattern map, pattern filters, keyboard product chooser and named source evidence flow. The comparison remains explicitly sampled to the first 40 filtered products. Conflicting source listings preserve both evidence memberships; listing-only feeds cannot become available stock.
+- Catalogue H1 and browser title now reflect the active query or filter scope. Inverse selected-filter chrome distinguishes query/source, clinical, price, review and stock dimensions using labelled accent families. Single-result copy is corrected.
+- Missing-capture records on Sources now align their glyph, heading/status and disclosure consistently across desktop and phone.
+- TypeScript, format, lint, 36 tests and production build passed. The local pipeline verifier passed 96 checks. `static/app` remains unchanged.
+- Focused CUA workflows at 1440, 375 and 320px verify pattern filtering/reset, keyboard product changes, circle activation, all 15 named source identities, product inspection, native modality, Escape, 42% backdrop and 3px blur. No horizontal document overflow or automated axe violations were found. Axe incomplete contrast results remain in the evidence; this is not a manual accessibility certification.
+- Reproduction: `qa/stock-comparison-review.mjs`; results and real UI captures: `evidence/overview-overhaul/comparison/`. Existing broader Catalogue QA now targets the visual comparison rather than the removed table.
+- Favicon publication uses one PNG icon link, replaced on system-theme changes to avoid cached alternate icons winning. Light/dark transition and listener cleanup have unit coverage; an actual OS theme switch has not been manually exercised in this pass.
+- Git main update is authorized. A Git push is distinct from deployment: the existing Vercel Drop project is not connected to this repository.

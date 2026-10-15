@@ -124,8 +124,8 @@ export default function Sources({ store, onNavigate, setFilters }) {
             {store.absent.map((source) => (
               <article key={source.pharmacy_id}>
                 <PharmacyGlyph id={source.pharmacy_id} size={36} />
-                <div>
-                  <h3>{source.name}</h3>
+                <div className="source-gap-content">
+                  <header><h3>{source.name}</h3><span className="source-gap-state">Absent</span></header>
                   <p>No listings captured.</p>
                   <details>
                     <summary>
@@ -137,7 +137,6 @@ export default function Sources({ store, onNavigate, setFilters }) {
                     </p>
                   </details>
                 </div>
-                <span>Absent</span>
               </article>
             ))}
           </div>

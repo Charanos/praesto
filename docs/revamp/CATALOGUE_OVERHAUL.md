@@ -18,7 +18,7 @@ PharmacyStack shows up to three identities plus a remainder. Its accessible labe
 
 ## Comparison and reading surfaces
 
-The Matrix uses upright named source headers with glyphs, a sticky identity column and contained two-dimensional scrolling. Its first 40 filtered products use explicit In/Out/?/— text. Listing-only sources remain marked and never become evidence of available stock.
+The Matrix is now a visual comparison workspace. A Recharts scatter map groups the first 40 filtered products by their in-stock and out-of-stock source counts; labelled circles show the number of products in each pattern. Four pattern controls and an arrow-key product chooser connect the overview to a selected product's named pharmacy evidence. Every captured source belongs to exactly one displayed state: in stock, out of stock, conflicting reports, stock not reported, or not listed. Conflicting source listings retain both count memberships. Listing-only feeds remain unknown; missing listings never imply unavailable stock. Inspect product retains the full source-listing reader. The chart loads only when this view is opened and uses native keyboard-operable controls.
 
 Selection Charts pair horizontal price-frequency bars with percentile values and an exact table; an eight-category treemap with counts; a source ledger with product-grain evidence; seven listing-only source links; and selectable stockout report groups. Each visual has a direct text alternative. Chart and category actions retain the existing filter grammar. A product-level rate here is explicitly distinct from the Overview's listing-level headline.
 

@@ -4,6 +4,7 @@ import PharmacyGlyph from "./PharmacyGlyph";
 import { PillToggle } from "./EvidenceControls";
 import type { OverviewFilters, OverviewPharmacy } from "../lib/overview-types";
 import { n0 } from "./ui.jsx";
+import { filterAccent } from "../lib/catalogue-context";
 
 type Sort = { key: string; dir: string };
 const sortOptions = [
@@ -39,6 +40,8 @@ export default function CatalogueToolbar({
   pageSize = 100,
   onPageSize,
   tone = "light",
+  title = "Find & compare",
+  description = "",
 }: {
   filters: OverviewFilters;
   shops: OverviewPharmacy[];
@@ -58,6 +61,8 @@ export default function CatalogueToolbar({
   tone?: "light" | "inverse";
   pageSize?: number;
   onPageSize?: (size: number) => void;
+  title?: string;
+  description?: string;
 }) {
   const reporting = shops.filter((s) => s.publishes_oos).map((s) => s.bit);
   const selectedSort = `${sort.key}:${sort.dir}`;
@@ -66,13 +71,17 @@ export default function CatalogueToolbar({
       {mode === "header" && (
         <div className="catalogue-command-heading">
           <div className="catalogue-title-count">
-            <h1 tabIndex={-1}>Find &amp; compare</h1>
+            <h1 tabIndex={-1}>{title}</h1>
+            {description && (
+              <p className="catalogue-scope-description">{description}</p>
+            )}
             <p
               className="catalogue-result-count"
               role="status"
               aria-live="polite"
             >
-              <strong className="num">{n0(count)}</strong> results
+              <strong className="num">{n0(count)}</strong>{" "}
+              {count === 1 ? "result" : "results"}
               <span> from {n0(total)} product records</span>
             </p>
           </div>
@@ -206,19 +215,28 @@ export default function CatalogueToolbar({
           </div>
           {chips.length > 0 && (
             <div className="catalogue-applied" aria-label="Applied filters">
-              {chips.map((c) => (
-                <button
-                  key={c.key}
-                  aria-label={`Remove ${c.label}`}
-                  onClick={() => onPatch(c.clear)}
-                >
-                  {c.label}
-                  <Icon name="x" size={12} />
+              <header>
+                <span>
+                  Selected filters <b className="num">{chips.length}</b>
+                </span>
+                <button className="catalogue-clear" onClick={onReset}>
+                  Clear all
                 </button>
-              ))}
-              <button className="catalogue-clear" onClick={onReset}>
-                Clear all
-              </button>
+              </header>
+              <div className="catalogue-applied-chips">
+                {chips.map((c) => (
+                  <button
+                    key={c.key}
+                    data-tone={filterAccent(c.key).tone}
+                    aria-label={`Remove ${c.label}`}
+                    onClick={() => onPatch(c.clear)}
+                  >
+                    <Icon name={filterAccent(c.key).icon} size={14} />
+                    <span>{c.label}</span>
+                    <Icon name="x" size={12} />
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           <label className="catalogue-page-size">
